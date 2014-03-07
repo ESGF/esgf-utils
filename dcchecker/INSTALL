@@ -1,0 +1,21 @@
+1 Before you install:
+
+	Currently, checks are available for CORDEX and CMIP5.
+	If you wish to add checks for projects other than these:
+
+	1.1 Add a line to the file 'availablechecks' in this manner:
+		PROJECTNAME:projectdatanodelistfile
+	1.2 Note that  the 'projectdatanodelistfile' has to contain the actual datanodes 
+	where the data is published and not the index nodes, where data is presented.
+	1.3 You can add support for projects even after the installation, by following steps 1.1 and 1.2,
+	but by adding the line to the file 'activatedchecks' instead of 'availablechecks'.
+	1.4 Send your changes to esg-admin@nsc.liu.se, so that they can be included into the git repo.
+
+2 Installation:
+
+	2.1 Simply run ./install.sh to install it.
+	2.2 The script 'install.sh' is interactive and will ask you to provide:
+		a. installation  directory 
+		b. email id to send the cron outputs.
+		c. projects you want to run checks for. 
+
