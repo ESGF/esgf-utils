@@ -1,0 +1,85 @@
+From c5669d3e866bc70bf7dcc58bceb9dfe4c52c74c5 Mon Sep 17 00:00:00 2001
+From: Prashanth Dwarakanath <pchengi@nsc.liu.se>
+Date: Wed, 2 Apr 2014 18:17:05 +0200
+Subject: [PATCH] Allow users to pass optional args to libcurl
+
+---
+ openid/fetchers.py       | 10 +++++++---
+ openid/yadis/discover.py |  7 +++++--
+ 2 files changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/openid/fetchers.py b/openid/fetchers.py
+index 1c119a4..4cc9366 100644
+--- a/openid/fetchers.py
++++ b/openid/fetchers.py
+@@ -32,14 +32,14 @@ except ImportError:
+ USER_AGENT = "python-openid/%s (%s)" % (openid.__version__, sys.platform)
+ MAX_RESPONSE_KB = 1024
+ 
+-def fetch(url, body=None, headers=None):
++def fetch(url, body=None, headers=None,cargs=None):
+     """Invoke the fetch method on the default fetcher. Most users
+     should need only this method.
+ 
+     @raises Exception: any exceptions that may be raised by the default fetcher
+     """
+     fetcher = getDefaultFetcher()
+-    return fetcher.fetch(url, body, headers)
++    return fetcher.fetch(url, body, headers,cargs)
+ 
+ def createHTTPFetcher():
+     """Create a default HTTP fetcher instance
+@@ -285,7 +285,7 @@ class CurlHTTPFetcher(HTTPFetcher):
+         # XXX: make sure url is well-formed and routeable
+         return _allowedURL(url)
+ 
+-    def fetch(self, url, body=None, headers=None):
++    def fetch(self, url, body=None, headers=None,cargs=None):
+         stop = int(time.time()) + self.ALLOWED_TIME
+         off = self.ALLOWED_TIME
+ 
+@@ -307,6 +307,10 @@ class CurlHTTPFetcher(HTTPFetcher):
+             if header_list:
+                 c.setopt(pycurl.HTTPHEADER, header_list)
+ 
++            if cargs is not None:
++                for key,val in cargs.iteritems():
++                    c.setopt(getattr(pycurl,key),val)
++
+             # Presence of a body indicates that we should do a POST
+             if body is not None:
+                 c.setopt(pycurl.POST, 1)
+diff --git a/openid/yadis/discover.py b/openid/yadis/discover.py
+index 1412d74..f6dc55f 100644
+--- a/openid/yadis/discover.py
++++ b/openid/yadis/discover.py
+@@ -54,13 +54,16 @@ class DiscoveryResult(object):
+         return (self.usedYadisLocation() or
+                 self.content_type == YADIS_CONTENT_TYPE)
+ 
+-def discover(uri):
++def discover(uri,cargs=None):
+     """Discover services for a given URI.
+ 
+     @param uri: The identity URI as a well-formed http or https
+         URI. The well-formedness and the protocol are not checked, but
+         the results of this function are undefined if those properties
+         do not hold.
++    @param cargs: dictionary where keys are optional flags to libcurl,
++        and values are the actual values.
++        ex: cargs['CAINFO']='path-to-custom CA bundle'
+ 
+     @return: DiscoveryResult object
+ 
+@@ -69,7 +72,7 @@ def discover(uri):
+     @raises DiscoveryFailure: When the HTTP response does not have a 200 code.
+     """
+     result = DiscoveryResult(uri)
+-    resp = fetchers.fetch(uri, headers={'Accept': YADIS_ACCEPT_HEADER})
++    resp = fetchers.fetch(uri, headers={'Accept': YADIS_ACCEPT_HEADER},cargs=cargs)
+     if resp.status not in (200, 206):
+         raise DiscoveryFailure(
+             'HTTP Response status from identity URL host is not 200. '
+-- 
+1.8.5.1
+

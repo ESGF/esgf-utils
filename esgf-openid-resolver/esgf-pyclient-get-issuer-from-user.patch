@@ -1,0 +1,28 @@
+From 36f838a3e60a1a9e89c0741219c3062d367db0e5 Mon Sep 17 00:00:00 2001
+From: Prashanth Dwarakanath <pchengi@nsc.liu.se>
+Date: Fri, 14 Mar 2014 15:33:56 +0100
+Subject: [PATCH] Get issuer from user
+
+---
+ pyesgf/security/ats.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/pyesgf/security/ats.py b/pyesgf/security/ats.py
+index fee60b8..8d2ff90 100644
+--- a/pyesgf/security/ats.py
++++ b/pyesgf/security/ats.py
+@@ -37,9 +37,9 @@ ATS_REQUEST_TMPL = Template('''<?xml version="1.0" encoding="UTF-8"?>
+ 
+ 
+ class AttributeService(object):
+-    ISSUER = 'esgf-pyclient'
+-    def __init__(self, url):
++    def __init__(self, url,issuer):
+         self.url = url
++        self.ISSUER=issuer
+ 
+     def build_request(self, openid, attributes):
+         now = datetime.datetime.utcnow()
+-- 
+1.8.5.1
+
