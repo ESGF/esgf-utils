@@ -1,29 +1,35 @@
 ESGF Openid Resolver
 =====================
-This tool uses code from the following projects, with minor modifications.
+This tool uses code from the following projects.
 1. Stephen Pascoe's esgf-pyclient 
 https://github.com/stephenpascoe/esgf-pyclient.git) 
 2. python-openid
 https://github.com/openid/python-openid.git
 
+Install Prerequisites
+======================
+python-setuptools, pip, python-lxml, argparse.
+It's recommened to first setup python-setuptools and python-lxml using apt-get/yum.
+Next, install pip using easy_install and finally, install argparse, using pip.
+
+
 Quick Installation
 ==================
-1. Install the egg file for the modifid esgf-pyclient
+1. Install the egg file for esgf-pyclient
 2. Install the egg file for the modified python-openid
 3. Place the files oidtoemail.py and esgf-ca-bundle.crt in the same directory.
 
 Installation from Source
 =========================
-1. Clone esgf-pyclient from https://github.com/stephenpascoe/esgf-pyclient.git
-2. Checkout commit id 401ce2008a8f5f623acffda98348376ebc6d61d1
-3. Apply the patch provided here (esgf-pyclient-get-issuer-from-user.patch)
-4. Install the patched esgf-pyclient
-5. Clone python-openid from https://github.com/openid/python-openid.git
-6. Apply the patch provided here (python-openid-allow-optional-flags-to-libcurl.patch
-7. Install the patched python-openid
+1. Clone esgf-pyclient from https://github.com/stephenpascoe/esgf-pyclient.git and install it.
+2. Clone python-openid from https://github.com/openid/python-openid.git
+3. Checkout commit id b1d37696469921f1025395201864842427fc32fb
+4. Apply the patch provided here (python-openid-allow-optional-flags-to-libcurl.patch) using git-am.
+5. Install the patched python-openid
+
 
 Usage
 ======
-oidtoemail.py can accept either a single openid string or a file containing several openids to resolve. To pass a file as argument, use the '--file' flag. 
+oidtoemail.py can accept either a single openid string or a file containing several openids to resolve. To pass a file as argument, use the '--file' flag.
+eg: python oidtoemail.py 'https://esg-dn1.nsc.liu.se/esgf-idp/openid/pchengi' 
 Contact esg-admin@nsc.liu.se for queries/support.
-
