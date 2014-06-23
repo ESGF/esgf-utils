@@ -32,4 +32,8 @@ Usage
 ======
 oidtoemail.py can accept either a single openid string or a file containing several openids to resolve. To pass a file as argument, use the '--file' flag.
 eg: python oidtoemail.py 'https://esg-dn1.nsc.liu.se/esgf-idp/openid/pchengi' 
-Contact esg-admin@nsc.liu.se for queries/support.
+Contact 'esg-admin' at 'nsc.liu.se' for queries/support.
+
+CEDA Openids
+============
+The Openid service at CEDA requires that you seek prior approval in order to query it. The DN of the machine from which the query would be fired needs to be registered with them. Contact 'philip.kershaw' at 'stfc.ac.uk' for this. Once this registration is done, replace the value of '/test/test' with the actual DN in the line that says 'QUERY_ISSUER' in oidtoemail.py.
