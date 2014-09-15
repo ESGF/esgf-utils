@@ -1,6 +1,16 @@
 #!/bin/bash
 
 release_major_version=1.7
+script_version='v1.7.2-phoenix-release-master'
+script_release='Phoenix Release'
+
+####Do not change below this line####
+replace_version='v0.0.0-devel'
+replace_release='Flatbush'
+quotedsv=`echo "$replace_version" | sed 's/[./*?|]/\\\\&/g'`;
+quotedsr=`echo "$replace_release" | sed 's/[./*?|]/\\\\&/g'`;
+
+echo -n >listoffiles;
 declare -A components
 components[esgf-dashboard]='bin/esg-dashboard INSTALL README LICENSE'
 components[esgf-desktop]='bin/esg-desktop INSTALL README LICENSE'
@@ -37,15 +47,23 @@ for i in "${!components[@]}"; do
 		if echo $f|grep md5 >/dev/null; then 
 			continue; 
 		else 
+			if [ "$f" = "esg-node" ]; then
+				sed -i "s/\(script_version=\"$quotedsv\"\)/script_version=\"$script_version\"/" esg-node;
+				sed -i "s/\(script_release=\"$quotedsr\"\)/script_release=\"$script_release\"/" esg-node;
+			fi
 			md5sum $f >$f.md5; 
 		fi
 	 done
 	if [ "$i" = "esgf-installer" ]; then
 		mkdir $release_major_version;
-		mv esg-node esg-node.md5sum $release_major_version;
+		mv esg-node esg-node.md5 esg-bootstrap esg-bootstrap.md5 $release_major_version/;
 	fi
 	tar -czf $i-dist.tgz *;
 	mv $i-dist.tgz ../final-dists
 	cd ..
 	rm -rf temp-dists/*
+	tar -tf final-dists/$i-dist.tgz |while read ln; do
+		val=`echo $ln|sed '/\(.*\/$\)/d'`;
+		echo "$i/$ln">>listoffiles;
+	done
 done
