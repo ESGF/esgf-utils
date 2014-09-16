@@ -22,10 +22,13 @@ components[esgf-web-fe]='bin/esg-web-fe INSTALL README LICENSE'
 components[esg-orp]='bin/esg-orp INSTALL README LICENSE'
 components[esgf-getcert]='INSTALL README LICENSE'
 components[esg-search]='bin/esg-search bin/esgf-crawl bin/esgf-optimize-index etc/conf/jetty/jetty.xml-auth etc/conf/jetty/realm.properties etc/conf/solr/schema.xml etc/conf/solr/solrconfig.xml etc/conf/solr/solrconfig.xml-replica etc/conf/solr/solr.xml-master etc/conf/solr/solr.xml-slave etc/conf/jetty/webdefault.xml-auth INSTALL README LICENSE'
+components[esgf-product-server]='esg-product-server'
 rm -rf final-dists
 rm -rf temp-dists
 mkdir final-dists
 mkdir temp-dists
+mkdir esgf-product-server 2>/dev/null
+cp esgf-installer/product-server/esg-product-server esgf-product-server/
 for i in "${!components[@]}"; do
 	if [ ! -d $i ]; then
 		echo "Directory $i not found. Bailing out.";
