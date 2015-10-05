@@ -1,11 +1,11 @@
 #!/bin/bash
 
 script_maj_version=2.0
-script_version='v2.0-RC5.3.6-devel'
+script_version='v2.0-master-release'
 script_release='Centaur'
 
 ####Do not change below this line####
-replace_version='v2.0-RC3.2-devel'
+replace_version='v2.0-RC5.4.0-devel'
 replace_script_maj_version=2.0
 replace_release='Centaur'
 quotedsv=`echo "$replace_version" | sed 's/[./*?|]/\\\\&/g'`;
