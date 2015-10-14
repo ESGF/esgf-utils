@@ -1,7 +1,7 @@
 #!/bin/bash
 
 script_maj_version=2.0
-script_version='v2.0-master-release'
+script_version='v2.0.2-master-release'
 script_release='Centaur'
 
 ####Do not change below this line####
@@ -32,7 +32,7 @@ mkdir final-dists
 mkdir temp-dists
 mkdir esgf-product-server 2>/dev/null
 mkdir esgf-cog 2>/dev/null
-cp esgf-installer/product-server/esg-product-server esgf-product-server/
+cp esgf-installer/product-server/* esgf-product-server/
 cp esgf-installer/cog/esg-cog esgf-cog
 for i in "${!components[@]}"; do
 	if [ ! -d $i ]; then
