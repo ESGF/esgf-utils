@@ -24,7 +24,6 @@ def doLookup(openid,cargs):
 		discoverresult=discover.discover(openid,cargs)
 	except:
 		print "ConnectionError: failed to lookup %s"%(openid)
-		raise
 		return
 	
 	root=etree.XML(discoverresult.response_text)
