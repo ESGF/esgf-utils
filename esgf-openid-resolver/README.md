@@ -8,16 +8,9 @@ https://github.com/openid/python-openid.git
 
 Install Prerequisites
 ======================
-python-setuptools, pip, python-lxml, argparse.
+python-setuptools, pip, python-lxml, argparse, pycurl
 It's recommened to first setup python-setuptools and python-lxml using apt-get/yum.
-Next, install pip using easy_install and finally, install argparse, using pip.
-
-
-Quick Installation
-==================
-1. Install the egg file for esgf-pyclient
-2. Install the egg file for the modified python-openid
-3. Place the files oidtoemail.py and esgf-ca-bundle.crt in the same directory.
+Next, install pip using easy_install and finally, install argparse and pycurl, using pip.
 
 Installation from Source
 =========================
@@ -26,7 +19,7 @@ Installation from Source
 3. Checkout commit id b1d37696469921f1025395201864842427fc32fb
 4. Apply the patch provided here (python-openid-allow-optional-flags-to-libcurl.patch) using git-am.
 5. Install the patched python-openid
-
+6. Place the files oidtoemail.py and esgf-ca-bundle.crt in the same directory.
 
 Usage
 ======
