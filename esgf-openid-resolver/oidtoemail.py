@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from pyesgf.security import ats
 from openid.yadis import discover
