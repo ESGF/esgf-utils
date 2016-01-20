@@ -1,7 +1,7 @@
 #!/bin/bash
 
-script_maj_version=2.0
-script_version='v2.0.2-master-release'
+script_maj_version=2.2
+script_version='v2.2.2-devel-release'
 script_release='Centaur'
 
 ####Do not change below this line####
@@ -17,23 +17,26 @@ declare -A components
 components[esgf-dashboard]='bin/esg-dashboard INSTALL README LICENSE'
 components[esgf-desktop]='bin/esg-desktop INSTALL README LICENSE'
 components[esgf-idp]='bin/esg-idp INSTALL README LICENSE'
-components[esgf-installer]='setup-autoinstall globus/esg-globus esg-bootstrap esg-node esg-init esg-functions esg-gitstrap esg-node.completion esg-purge.sh esg-autoinstall-testnode compute-tools/esg-compute-languages compute-tools/esg-compute-tools INSTALL README LICENSE'
+components[esgf-installer]='jar_security_scan setup-autoinstall globus/esg-globus esg-bootstrap esg-node esg-init esg-functions esg-gitstrap esg-node.completion esg-purge.sh esg-autoinstall-testnode compute-tools/esg-compute-languages compute-tools/esg-compute-tools INSTALL README LICENSE'
 components[esgf-node-manager]='bin/esg-node-manager bin/esgf-sh bin/esgf-spotcheck etc/xsd/registration/registration.xsd INSTALL README LICENSE'
 components[esgf-security]='bin/esgf-user-migrate bin/esg-security bin/esgf-policy-check INSTALL README LICENSE'
-components[esgf-web-fe]='bin/esg-web-fe INSTALL README LICENSE'
+#components[esgf-web-fe]='bin/esg-web-fe INSTALL README LICENSE'
 components[esg-orp]='bin/esg-orp INSTALL README LICENSE'
 components[esgf-getcert]='INSTALL README LICENSE'
 components[esg-search]='bin/esg-search bin/esgf-crawl bin/esgf-optimize-index etc/conf/jetty/jetty.xml-auth etc/conf/jetty/realm.properties etc/conf/solr/schema.xml etc/conf/solr/solrconfig.xml etc/conf/solr/solrconfig.xml-replica etc/conf/solr/solr.xml-master etc/conf/solr/solr.xml-slave etc/conf/jetty/webdefault.xml-auth INSTALL README LICENSE'
 components[esgf-product-server]='esg-product-server'
+components[filters]='esg-access-logging-filter esg-drs-resolving-filter esg-security-las-ip-filter esg-security-tokenless-filters' 
 components[esgf-cog]='esg-cog'
 rm -rf final-dists
 rm -rf temp-dists
 mkdir final-dists
 mkdir temp-dists
 mkdir esgf-product-server 2>/dev/null
+mkdir filters 2>/dev/null
 mkdir esgf-cog 2>/dev/null
 cp esgf-installer/product-server/* esgf-product-server/
 cp esgf-installer/cog/esg-cog esgf-cog
+cp esgf-installer/filters/* filters/
 for i in "${!components[@]}"; do
 	if [ ! -d $i ]; then
 		echo "Directory $i not found. Bailing out.";
@@ -68,7 +71,7 @@ for i in "${!components[@]}"; do
 	 done
 	if [ "$i" = "esgf-installer" ]; then
 		mkdir $script_maj_version;
-		mv esg-node* setup-autoinstall* esg-purge.sh* esg-init* esg-functions* esg-bootstrap* $script_maj_version/;
+		mv esg-node* jar_security_scan* setup-autoinstall* esg-purge.sh* esg-init* esg-functions* esg-bootstrap* $script_maj_version/;
 	fi
 	tar -czf $i-dist.tgz *;
 	mv $i-dist.tgz ../final-dists
