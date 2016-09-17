@@ -1,11 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
 import logging
 from esgcet.config import loadConfig, getConfig, getThreddsServiceSpecs
 from esgcet.publish import thredds
-from lxml.etree import SubElement as SE, XMLParser, parse, tostring
+from lxml.etree import SubElement as SE, XMLParser, parse, tostring, fromstring
+import urlparse, httplib, urllib
 
 
 NS = {
@@ -15,7 +16,11 @@ NS = {
 }
 XLINK = "http://www.w3.org/1999/xlink"
 
+
+update_all = False
+
 def add_globus(catalog_path, globus_base):
+    sys.stdout.write('Processing %s' % catalog_path)
     parser = XMLParser(remove_blank_text=True)
     doc = parse(catalog_path, parser)
     root = doc.getroot()
@@ -24,19 +29,32 @@ def add_globus(catalog_path, globus_base):
     globus_service = fileservice.findall('ns:service[@serviceType="Globus"]', namespaces=NS)
     if globus_service:
         base = globus_service[0].get('base')
+        update = False
         if base != globus_base:
-            print 'A base attribute of the Globus service in %s is\n'\
-                  '%s which does not match\n'\
-                  '%s set in %s.' % (catalog_file, base, globus_base, os.environ['ESGINI'])
-            while True:
-                sys.stdout.write("Do you want to correct it now? [Y/n]")
-                line = sys.stdin.readline().rstrip()
-                if line == 'n' or line == 'N':
-                    break
-                if line == '' or line == 'y' or line == 'Y':
-                    globus_service[0].set('base', globus_base)
-                    doc.write(catalog_up, xml_declaration=True, encoding='UTF-8', pretty_print=True)
-                    break
+            if update_all:
+                update = True
+            else:
+                print 'A base attribute of the Globus service in %s is\n'\
+                      '%s which does not match\n'\
+                      '%s set in %s.' % (catalog_file, base, globus_base, os.environ['ESGINI'])
+                while True:
+                    sys.stdout.write("Do you want to correct it now? [Y/n/all]")
+                    line = sys.stdin.readline().rstrip()
+                    if line == 'n' or line == 'N':
+                        break
+                    if line == 'all':
+                        update_all = True
+                        update = True
+                        break
+                    if line == '' or line == 'y' or line == 'Y':
+                        update = True
+                        break
+        if update:
+            globus_service[0].set('base', globus_base)
+            doc.write(catalog_up, xml_declaration=True, encoding='UTF-8', pretty_print=True)
+            print " - Done"
+        else:
+            print " - Nothing to do"
     else:
         service = SE(fileservice, 'service', base=globus_base, desc="Globus Transfer Service", name="Globus", serviceType="Globus")
         SE(service, 'property', name='requires_authorization', value='false')
@@ -49,6 +67,7 @@ def add_globus(catalog_path, globus_base):
                 url_path = url_path[1:]
             SE(dataset, 'access', serviceName='Globus', urlPath=url_path)
         doc.write(catalog_path, xml_declaration=True, encoding='UTF-8', pretty_print=True)
+        print " - Done"
 
 
 def process(thredds_root, thredds_root_up, globus_base, thredds_url, esgf_harvesting_service_url, hessian_service_certfile):
@@ -74,7 +93,6 @@ def process(thredds_root, thredds_root_up, globus_base, thredds_url, esgf_harves
                 if line == '' or line == 'y' or line == 'Y':
                     globus_service[0].set('base', globus_base)
                     doc.write(catalog_up, xml_declaration=True, encoding='UTF-8', pretty_print=True)
-                    print 'Done'
                     break
     else:
         service = SE(fileservice, 'service', base=globus_base, desc="Globus Transfer Service", name="Globus", serviceType="Globus")
@@ -83,7 +101,7 @@ def process(thredds_root, thredds_root_up, globus_base, thredds_url, esgf_harves
         doc.write(catalog_up, xml_declaration=True, encoding='UTF-8', pretty_print=True)
 
 
-    # Process all xml files listed in /esg/content/thredds/esgcet/catalog.xml
+    # Get all xml files listed in /esg/content/thredds/esgcet/catalog.xml
     catalog = os.path.join(thredds_root, 'catalog.xml')
     parser = XMLParser(remove_blank_text=True)
     doc = parse(catalog, parser)
@@ -93,36 +111,41 @@ def process(thredds_root, thredds_root_up, globus_base, thredds_url, esgf_harves
     for cr in catalog_ref:
         href = cr.get('{%s}href' % XLINK)
         catalog_files.append(href)
-    print 'Found %d catalog files to process' % len(catalog_files)
+    print 'Found %d THREDDS catalog files to process' % len(catalog_files)
+
+    # Add Globus URLs to all xml files
     for catalog_file in catalog_files:
         catalog_path = os.path.join(thredds_root, catalog_file)
-        print 'Processing %s' % catalog_path
         add_globus(catalog_path, globus_base)
 
     # re-initialize the THREDDS server
-    print "Reinitializing THREDDS server"
+    print "\nReinitializing THREDDS server"
     thredds.reinitializeThredds()
 
     # re-harvest all catalogs
-    print "Re-harvesting all catalogs" 
+    print "\nRe-harvesting all catalogs"
+    hessian_service_url = urlparse.urlparse(esgf_harvesting_service_url)
     for catalog_file in catalog_files:
         catalog_url = thredds_url + '/' + catalog_file
-        harvest(catalog_url, esgf_harvesting_service_url, hessian_service_certfile)
+        harvest(catalog_url, hessian_service_url.hostname, hessian_service_url.path, hessian_service_certfile)
 
 
-def harvest(catalog_url, esgf_harvesting_service_url, hessian_service_certfile):
+def harvest(catalog_url, hessian_service_hostname, hessian_service_path, hessian_service_certfile):
 
-    print 'Harvesting catalog: %s' % catalog_url
-    command = " ".join(['wget', 
-                       '--no-check-certificate',
-                       '--ca-certificate %s' % hessian_service_certfile,
-                       '--certificate %s' % hessian_service_certfile,
-                       '--private-key %s' % hessian_service_certfile,
-                       '--verbose',
-                       '--post-data="uri=%s&metadataRepositoryType=THREDDS"' % catalog_url,
-                       ' %s' % esgf_harvesting_service_url])
-    print 'Executing command: %s' % command
-    os.system(command)
+    sys.stdout.write('Harvesting %s' % catalog_url)
+
+    params = urllib.urlencode({'uri': catalog_url, 'metadataRepositoryType': 'THREDDS'})
+    conn = httplib.HTTPSConnection(hessian_service_hostname, cert_file=hessian_service_certfile, key_file=hessian_service_certfile) 
+    conn.request("POST", hessian_service_path, params)
+    resp = conn.getresponse()
+    if resp.status == 200:
+        print ' - Success'
+    elif resp.status == 401:
+        root = fromstring(resp.read())
+        message = root.xpath('/response/message')[0]
+        print '\n        Error - %s' % message.text
+    else:
+        print '\n        Error %d, %s' % (resp.status, resp.reason)
 
 
 def main():
@@ -175,16 +198,16 @@ def main():
         sys.exit(1)
 
     print 'The script recursively goes through xml files in %s\n'\
-          'looking for datasets that were published without Globus file service and add\n'\
+          'looking for datasets that were published without Globus file service and adds\n'\
           'Globus access to the datasets. If a dataset was published with Globus file\n'\
-          'service configured, the script skip such a dataset leaving a corresponding xml\n'\
-          'file unmodified. The script reinitializes THREDDS and requests Solr to reindex\n'\
-          'the updated xml files. Because Hessian service requires SSL authentication, '\
-          'the X.509 certificate, %s,\n'\
-          'should be valid and requested by a user who has the publisher role in all\n'\
+          'service configured, the script skips such a dataset leaving a corresponding xml\n'\
+          'file unmodified. The script reinitializes THREDDS and requests Hessian service to\n'\
+          'to harvest the updated xml files. Because Hessian service requires SSL\n'\
+          'authentication, the X.509 certificate, %s,\n'\
+          'should be valid and obtained by a user who has the publisher role in all\n'\
           'projects.\n'\
           'It is strongly advised that you make a copy of the entire %s\n'\
-          'directory prior to running this script.' % (hessian_service_certificate, thredds_root_up, thredds_root_up)
+          'directory prior to running this script.' % (thredds_root_up, hessian_service_certfile, thredds_root_up)
 
     while True:
         sys.stdout.write("Do you want to continue? [y/N]")
