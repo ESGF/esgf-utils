@@ -20,8 +20,14 @@ XLINK = "http://www.w3.org/1999/xlink"
 update_all = False
 
 def add_globus(catalog_path, globus_base):
+    if ' ' in catalog_path:
+        return
+
     sys.stdout.write('Processing %s' % catalog_path)
+
+
     parser = XMLParser(remove_blank_text=True)
+
     doc = parse(catalog_path, parser)
     root = doc.getroot()
 
@@ -61,11 +67,13 @@ def add_globus(catalog_path, globus_base):
         SE(service, 'property', name='application', value='Web Browser')
         datasets = root.xpath('/ns:catalog/ns:dataset/ns:dataset', namespaces=NS)
         for dataset in datasets:
-            gridftp_access = dataset.findall('ns:access[@serviceName="GRIDFTP"]', namespaces=NS)[0]
-            url_path = gridftp_access.get('urlPath')
-            if url_path.startswith('/'):
-                url_path = url_path[1:]
-            SE(dataset, 'access', serviceName='Globus', urlPath=url_path)
+            lst = dataset.findall('ns:access[@serviceName="GRIDFTP"]', namespaces=NS)
+            if len(lst) > 0:
+                gridftp_access = lst[0]
+                url_path = gridftp_access.get('urlPath')
+                if url_path.startswith('/'):
+                    url_path = url_path[1:]
+                SE(dataset, 'access', serviceName='Globus', urlPath=url_path)
         doc.write(catalog_path, xml_declaration=True, encoding='UTF-8', pretty_print=True)
         print " - Done"
 
