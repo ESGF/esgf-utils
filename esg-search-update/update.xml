@@ -1,0 +1,9 @@
+<!-- set one or more values on multiple records (identified by an ESGF query) -->
+<updates core="datasets" action="set">
+   <update>
+      <query>project=input4MIPs&amp;institution=PCMDI&amp;dataset_version_number=1.1.0</query>
+      <field name="latest">
+         <value>false</value>
+      </field>
+   </update>
+</updates>
