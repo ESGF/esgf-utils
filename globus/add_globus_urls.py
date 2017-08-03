@@ -16,13 +16,29 @@ NS = {
 }
 XLINK = "http://www.w3.org/1999/xlink"
 
-
+global update_all
 update_all = False
 
+
+
 def add_globus(catalog_path, globus_base):
+    if ' ' in catalog_path:
+        return
+
+    global update_all
+
     sys.stdout.write('Processing %s' % catalog_path)
+
+
     parser = XMLParser(remove_blank_text=True)
-    doc = parse(catalog_path, parser)
+
+    doc = None
+    try:
+        doc = parse(catalog_path, parser)
+    except:
+        print "Parse error on file", catalog_path
+        return
+
     root = doc.getroot()
 
     fileservice = root.xpath('/ns:catalog/ns:service[@name="fileservice"]', namespaces=NS)[0]
@@ -36,7 +52,7 @@ def add_globus(catalog_path, globus_base):
             else:
                 print 'A base attribute of the Globus service in %s is\n'\
                       '%s which does not match\n'\
-                      '%s set in %s.' % (catalog_file, base, globus_base, os.environ['ESGINI'])
+                      '%s set in %s.' % (catalog_path, base, globus_base, os.environ['ESGINI'])
                 while True:
                     sys.stdout.write("Do you want to correct it now? [Y/n/all]")
                     line = sys.stdin.readline().rstrip()
@@ -61,11 +77,13 @@ def add_globus(catalog_path, globus_base):
         SE(service, 'property', name='application', value='Web Browser')
         datasets = root.xpath('/ns:catalog/ns:dataset/ns:dataset', namespaces=NS)
         for dataset in datasets:
-            gridftp_access = dataset.findall('ns:access[@serviceName="GRIDFTP"]', namespaces=NS)[0]
-            url_path = gridftp_access.get('urlPath')
-            if url_path.startswith('/'):
-                url_path = url_path[1:]
-            SE(dataset, 'access', serviceName='Globus', urlPath=url_path)
+            lst = dataset.findall('ns:access[@serviceName="GRIDFTP"]', namespaces=NS)
+            if len(lst) > 0:
+                gridftp_access = lst[0]
+                url_path = gridftp_access.get('urlPath')
+                if url_path.startswith('/'):
+                    url_path = url_path[1:]
+                SE(dataset, 'access', serviceName='Globus', urlPath=url_path)
         doc.write(catalog_path, xml_declaration=True, encoding='UTF-8', pretty_print=True)
         print " - Done"
 
@@ -125,9 +143,10 @@ def process(thredds_root, thredds_root_up, globus_base, thredds_url, esgf_harves
     # re-harvest all catalogs
     print "\nRe-harvesting all catalogs"
     hessian_service_url = urlparse.urlparse(esgf_harvesting_service_url)
-    for catalog_file in catalog_files:
-        catalog_url = thredds_url + '/' + catalog_file
-        harvest(catalog_url, hessian_service_url.hostname, hessian_service_url.path, hessian_service_certfile)
+
+
+
+#        harvest(catalog_url, hessian_service_url.hostname, hessian_service_url.path, hessian_service_certfile)
 
 
 def harvest(catalog_url, hessian_service_hostname, hessian_service_path, hessian_service_certfile):
