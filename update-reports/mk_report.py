@@ -15,7 +15,7 @@ search_url='https://esgf-node.llnl.gov/esg-search/search?project={}&{}&limit={}&
 
 GRAY = "CCCCCC"
 GREEN = "A9F5A9"
-NBSP = "&nbsp"
+MISSING = ""
 BR= "<br><br>"  # Adjust for space
 
 
@@ -30,7 +30,7 @@ def print_header(TableType, columns, other):
 
 	header_cell = "<th>{}</th>"
 
-	print "<table border cellspacing=2 cellpadding=4>"
+	print "<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\">"
 	print "<tr><th>source_id</th>"
 
 	for col in columns:
@@ -102,7 +102,7 @@ def build_matrix(QSTR):
 
 				print cell.format(GREEN, act_dict[col])
 			else:
-				print cell.format(GRAY,NBSP)
+				print cell.format(GRAY,MISSING)
 
 		print "</tr>"
 	print "</table>"
@@ -133,7 +133,7 @@ def build_matrix(QSTR):
 
 				print cell.format(GREEN, exp_dict[col])
 			else:
-				print cell.format(GRAY,NBSP)
+				print cell.format(GRAY,MISSING)
 
 		print "</tr>"
 	print "</table>"
