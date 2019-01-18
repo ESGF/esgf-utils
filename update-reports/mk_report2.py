@@ -14,7 +14,7 @@ def build_table(holdings, source_id_list, col_names, time_shade=False):
 	row_cell_b="<tr><td><b>{}</b></td>"
 	cell = '<td bgcolor="#{}">{}</td>'
 
-	# If time_shade is enabled, then the cells will be shaded by how recent
+	# If time_shade is enabled, then the cells will be shaded by how recently
 	# the latest datasets were published.  The more recent the dataset, the darker the cell.
 	current_time = datetime.datetime.now()
 	def _time_green(_dt):
@@ -119,12 +119,12 @@ def gen_tables(project, time_shade):
 
 	# time shading legend
 	if time_shade:
-		print "The cells are shaded by how recent their latest datasets were published."
+		print "The cells are shaded by how recently their latest datasets were published."
 		print BR
 		print "<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\"><tr>"
-		print '<td bgcolor="#BBF7BB">Older than 28 days</td>'
-		print '<td bgcolor="#32E732">Older than 7 days</td>'
-		print '<td bgcolor="#15B715">Within 7 days</td>'
+		print '<td bgcolor="#BBF7BB">More than 28 days</td>'
+		print '<td bgcolor="#32E732">More than 7 days</td>'
+		print '<td bgcolor="#15B715">Less than 7 days</td>'
 		print "</tr></table><br>"
 
 	# activity table
