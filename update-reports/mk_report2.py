@@ -15,7 +15,7 @@ def build_table(holdings, source_id_list, col_names, time_shade=False):
 	cell = '<td bgcolor="#{}">{}</td>'
 
 	# If time_shade is enabled, then the cells will be shaded by how recent
-	# the latest data was published.  The more recent the data, the darker the cell.
+	# the latest datasets were published.  The more recent the dataset, the darker the cell.
 	current_time = datetime.datetime.now()
 	def _time_green(_dt):
 		if time_shade:
@@ -71,7 +71,7 @@ def get_data(project):
 	# Get the list of data holdings
 	holdings = []
 	num_found = js["response"]["numFound"]
-	limit = 10000  # This is currently the maximum number of entries that can be found from esgf-node.llnl.gov/esg-search
+	limit = 10000  # This is currently the maximum number of datasets that can be retrieved from esgf-node.llnl.gov/esg-search
 	offset = 0
 	while offset < num_found:
 		r = requests.get(search_url.format(project=project, offset=offset, limit=limit))
@@ -99,7 +99,7 @@ def gen_tables(project, time_shade):
 	# Load all the source ids currently published and get lists 
 	source_id_list, activity_id_list, data_holdings = get_data(project)
 
-	# Organize timestamps of published experiments by source, activity, and experiment ID
+	# Organize timestamps of published datasets by source, activity, and experiment ID
 	activity_holdings = collections.defaultdict(dict)
 	experiment_holdings = collections.defaultdict(dict)
 
@@ -115,16 +115,25 @@ def gen_tables(project, time_shade):
 		activity_holdings[sid][aid].append(dt)
 		experiment_holdings[sid][eid].append(dt)
 
-	# activity table
-
 	print BR
+
+	# time shading legend
+	if time_shade:
+		print "The cells are shaded by how recent their latest datasets were published."
+		print BR
+		print "<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\"><tr>"
+		print '<td bgcolor="#BBF7BB">Older than 28 days</td>'
+		print '<td bgcolor="#32E732">Older than 7 days</td>'
+		print '<td bgcolor="#15B715">Within 7 days</td>'
+		print "</tr></table><br>"
+
+	# activity table
 	print Activity_TXT
 	print BR
 
 	build_table(activity_holdings, source_id_list, activity_id_list, time_shade)
 
 	# experiment table
-
 	print BR
 	print Experiment_TXT
 	print BR
@@ -136,7 +145,7 @@ def main():
 
 	parser = argparse.ArgumentParser(description="Create HTML tables for the data holdings of ESGF")
 	parser.add_argument("--project", "-p", dest="project", type=str, default="CMIP6", help="MIP project name (default is CMIP6)")
-	parser.add_argument("--timeshade", help="Shade cells based on how recently the data was published", action="store_true")
+	parser.add_argument("--timeshade", help="Shade cells based on how recently the datasets were published", action="store_true")
 	args = parser.parse_args()
 
 	gen_tables(args.project, args.timeshade)
