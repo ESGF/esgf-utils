@@ -7,6 +7,43 @@ import collections
 
 def build_table(holdings, source_id_list, col_names, time_shade=False):
 
+	table_counts = collections.defaultdict(dict)
+
+	# counts and source totals
+	for source_id in source_id_list:
+		table_counts[source_id] = collections.defaultdict(dict)
+
+		source_total = 0
+		source_latest = None
+		for col in col_names:
+			if col in holdings[source_id].keys():	
+				num_found = len(holdings[source_id][col])
+				latest = max(holdings[source_id][col])
+				table_counts[source_id][col] = {'num': num_found, 'timestamp': latest}
+				if source_total == 0:
+					source_latest = latest
+				else:
+					source_latest = max(source_latest, latest)
+				source_total += num_found
+		if source_total > 0:
+			table_counts[source_id]['TOTAL'] = {'num': source_total, 'timestamp': source_latest}
+
+	# column totals
+	for col in col_names + ['TOTAL']:
+		col_total = 0
+		col_latest = None
+		for source_id in source_id_list:
+			if col in table_counts[source_id].keys():	
+				num_found = table_counts[source_id][col]['num']
+				latest = table_counts[source_id][col]['timestamp']
+				if col_total == 0:
+					col_latest = latest
+				else:
+					col_latest = max(col_latest, latest)
+				col_total += num_found
+		if col_total > 0:
+			table_counts['TOTAL'][col] = {'num': col_total, 'timestamp': col_latest}
+
 	GRAY = "CCCCCC"
 	MISSING = ""
 
@@ -32,18 +69,18 @@ def build_table(holdings, source_id_list, col_names, time_shade=False):
 	print "<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\">"
 	print "<tr><th>source_id</th>"
 
-	for col in col_names:
+	for col in ['TOTAL'] + col_names:
 		print header_cell.format(col)
 
 	print "</tr>"
 
-	for source_id in source_id_list:
+	for source_id in ['TOTAL'] + source_id_list:
 		print row_cell_b.format(source_id)
 
-		for col in col_names:
-			if col in holdings[source_id].keys():	
-				num_found = len(holdings[source_id][col])
-				latest = max(holdings[source_id][col])
+		for col in ['TOTAL'] + col_names:
+			if col in table_counts[source_id].keys():	
+				num_found = table_counts[source_id][col]['num']
+				latest = table_counts[source_id][col]['timestamp']
 				print cell.format(_time_green(latest), num_found)
 			else:
 				print cell.format(GRAY,MISSING)
