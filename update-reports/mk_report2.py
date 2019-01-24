@@ -50,6 +50,7 @@ def build_table(holdings, source_id_list, col_names, time_shade=False):
 	header_cell = "<th>{}</th>"
 	row_cell_b="<tr><td><b>{}</b></td>"
 	cell = '<td bgcolor="#{}">{}</td>'
+	cell_bold = '<td bgcolor="#{}"><b>{}</b></td>'
 
 	# If time_shade is enabled, then the cells will be shaded by how recently
 	# the latest datasets were published.  The more recent the dataset, the darker the cell.
@@ -69,19 +70,25 @@ def build_table(holdings, source_id_list, col_names, time_shade=False):
 	print "<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\">"
 	print "<tr><th>source_id</th>"
 
-	for col in ['TOTAL'] + col_names:
+	total_source_id = ['TOTAL'] + source_id_list
+	total_col_names = ['TOTAL'] + col_names
+
+	for col in total_col_names:
 		print header_cell.format(col)
 
 	print "</tr>"
 
-	for source_id in ['TOTAL'] + source_id_list:
+	for source_id in total_source_id:
 		print row_cell_b.format(source_id)
 
-		for col in ['TOTAL'] + col_names:
+		for col in total_col_names:
 			if col in table_counts[source_id].keys():	
 				num_found = table_counts[source_id][col]['num']
 				latest = table_counts[source_id][col]['timestamp']
-				print cell.format(_time_green(latest), num_found)
+				if col == 'TOTAL' or source_id == 'TOTAL':
+					print cell_bold.format(_time_green(latest), num_found)
+				else:
+					print cell.format(_time_green(latest), num_found)
 			else:
 				print cell.format(GRAY,MISSING)
 
