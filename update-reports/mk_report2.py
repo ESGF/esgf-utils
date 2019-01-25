@@ -5,44 +5,25 @@ import argparse
 import collections
 
 
-def build_table(holdings, source_id_list, col_names, time_shade=False):
+def build_table(holdings, source_id_list, col_total_name, col_names, time_shade=False):
 
 	table_counts = collections.defaultdict(dict)
+	source_totals = {k: 0 for k in source_id_list}
+	column_totals = {k: 0 for k in col_names}
+	total_models = 0
 
-	# counts and source totals
+	# counts and totals
 	for source_id in source_id_list:
 		table_counts[source_id] = collections.defaultdict(dict)
 
-		source_total = 0
-		source_latest = None
 		for col in col_names:
 			if col in holdings[source_id].keys():	
 				num_found = len(holdings[source_id][col])
 				latest = max(holdings[source_id][col])
 				table_counts[source_id][col] = {'num': num_found, 'timestamp': latest}
-				if source_total == 0:
-					source_latest = latest
-				else:
-					source_latest = max(source_latest, latest)
-				source_total += num_found
-		if source_total > 0:
-			table_counts[source_id]['TOTAL'] = {'num': source_total, 'timestamp': source_latest}
-
-	# column totals
-	for col in col_names + ['TOTAL']:
-		col_total = 0
-		col_latest = None
-		for source_id in source_id_list:
-			if col in table_counts[source_id].keys():	
-				num_found = table_counts[source_id][col]['num']
-				latest = table_counts[source_id][col]['timestamp']
-				if col_total == 0:
-					col_latest = latest
-				else:
-					col_latest = max(col_latest, latest)
-				col_total += num_found
-		if col_total > 0:
-			table_counts['TOTAL'][col] = {'num': col_total, 'timestamp': col_latest}
+				source_totals[source_id] += 1
+				column_totals[col] += 1
+		total_models += source_totals[source_id]
 
 	GRAY = "CCCCCC"
 	MISSING = ""
@@ -50,7 +31,7 @@ def build_table(holdings, source_id_list, col_names, time_shade=False):
 	header_cell = "<th>{}</th>"
 	row_cell_b="<tr><td><b>{}</b></td>"
 	cell = '<td bgcolor="#{}">{}</td>'
-	cell_bold = '<td bgcolor="#{}"><b>{}</b></td>'
+	cell_bold = '<td><b>{}</b></td>'
 
 	# If time_shade is enabled, then the cells will be shaded by how recently
 	# the latest datasets were published.  The more recent the dataset, the darker the cell.
@@ -70,25 +51,28 @@ def build_table(holdings, source_id_list, col_names, time_shade=False):
 	print "<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\">"
 	print "<tr><th>source_id</th>"
 
-	total_source_id = ['TOTAL'] + source_id_list
-	total_col_names = ['TOTAL'] + col_names
-
-	for col in total_col_names:
+	for col in [col_total_name] + col_names:
 		print header_cell.format(col)
 
 	print "</tr>"
 
-	for source_id in total_source_id:
-		print row_cell_b.format(source_id)
+	print row_cell_b.format('# of models')
+	print cell_bold.format(total_models)
 
-		for col in total_col_names:
+	for col in col_names:
+		print cell_bold.format(column_totals[col])
+
+	print "</tr>"
+
+	for source_id in source_id_list:
+		print row_cell_b.format(source_id)
+		print cell_bold.format(source_totals[source_id])
+
+		for col in col_names:
 			if col in table_counts[source_id].keys():	
 				num_found = table_counts[source_id][col]['num']
 				latest = table_counts[source_id][col]['timestamp']
-				if col == 'TOTAL' or source_id == 'TOTAL':
-					print cell_bold.format(_time_green(latest), num_found)
-				else:
-					print cell.format(_time_green(latest), num_found)
+				print cell.format(_time_green(latest), num_found)
 			else:
 				print cell.format(GRAY,MISSING)
 
@@ -175,14 +159,14 @@ def gen_tables(project, time_shade):
 	print Activity_TXT
 	print BR
 
-	build_table(activity_holdings, source_id_list, activity_id_list, time_shade)
+	build_table(activity_holdings, source_id_list, '# of activities', activity_id_list, time_shade)
 
 	# experiment table
 	print BR
 	print Experiment_TXT
 	print BR
 
-	build_table(experiment_holdings, source_id_list, CMIP_EXP, time_shade)
+	build_table(experiment_holdings, source_id_list, '# of expts', CMIP_EXP, time_shade)
 
 
 def main():
