@@ -5,7 +5,7 @@ import argparse
 import collections
 
 
-def build_table(holdings, source_id_list, col_total_name, col_names, time_shade=False):
+def build_holdings_table(holdings, source_id_list, col_total_name, col_names, time_shade=False):
 
 	table_counts = collections.defaultdict(dict)
 	source_totals = {k: 0 for k in source_id_list}
@@ -81,7 +81,7 @@ def build_table(holdings, source_id_list, col_total_name, col_names, time_shade=
 	print "</table>"
 
 
-def get_data(project):
+def get_holdings_data(project):
 
 	search_url = 'https://esgf-node.llnl.gov/esg-search/search' \
 				'?project={project}&offset={offset}&limit={limit}' \
@@ -125,7 +125,7 @@ def gen_tables(project, time_shade):
 	print headstr.format(timestamp)
 
 	# Load all the source ids currently published and get lists 
-	source_id_list, activity_id_list, data_holdings = get_data(project)
+	source_id_list, activity_id_list, data_holdings = get_holdings_data(project)
 
 	# Organize timestamps of published datasets by source, activity, and experiment ID
 	activity_holdings = collections.defaultdict(dict)
@@ -159,14 +159,14 @@ def gen_tables(project, time_shade):
 	print Activity_TXT
 	print BR
 
-	build_table(activity_holdings, source_id_list, '# of activities', activity_id_list, time_shade)
+	build_holdings_table(activity_holdings, source_id_list, '# of activities', activity_id_list, time_shade)
 
 	# experiment table
 	print BR
 	print Experiment_TXT
 	print BR
 
-	build_table(experiment_holdings, source_id_list, '# of expts', CMIP_EXP, time_shade)
+	build_holdings_table(experiment_holdings, source_id_list, '# of expts', CMIP_EXP, time_shade)
 
 
 def main():
