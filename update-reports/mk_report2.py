@@ -81,6 +81,56 @@ def build_holdings_table(holdings, source_id_list, col_total_name, col_names, ti
 	print "</table>"
 
 
+def build_exp_sim_table(exp_sim, source_id_list, col_names):
+
+	exp_sim_counts = collections.defaultdict(dict)
+
+	# Find total number of experiments and simulations
+	for source_id in source_id_list:
+		exp_sim_counts[source_id] = collections.defaultdict(dict)
+
+		for col in col_names:
+			if col in exp_sim[source_id].keys():
+				num_exp = 0
+				num_sim = 0
+				for exp, sims in exp_sim[source_id][col].items():
+					num_exp += 1
+					num_sim += len(sims)
+				exp_sim_counts[source_id][col] = {'num_exp': num_exp, 'num_sim': num_sim}
+
+	WHITE = "FFFFFF"
+	GRAY = "CCCCCC"
+	MISSING = ""
+
+	header_cell = "<th>{}</th>"
+	row_cell_b="<tr><td><b>{}</b></td>"
+	cell = '<td bgcolor="#{}">{}</td>'
+
+	print "<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\">"
+	print "<tr><th>source_id</th>"
+
+	for col in col_names:
+		print header_cell.format(col)
+
+	print "</tr>"
+
+	for source_id in source_id_list:
+		print row_cell_b.format(source_id)
+
+		for col in col_names:
+			if col in exp_sim_counts[source_id].keys():
+				num_exp = exp_sim_counts[source_id][col]['num_exp']
+				num_sim = exp_sim_counts[source_id][col]['num_sim']
+				data = '{}/{}'.format(num_exp,num_sim)
+				print cell.format(WHITE,data)
+			else:
+				print cell.format(GRAY,MISSING)
+
+		print "</tr>"
+
+	print "</table>"
+
+
 def get_holdings_data(project):
 
 	search_url = 'https://esgf-node.llnl.gov/esg-search/search' \
@@ -110,6 +160,40 @@ def get_holdings_data(project):
 	return (source_id_list, activity_id_list, holdings)
 
 
+def get_exp_sim_data(project, source_id_list, activity_id_list):
+
+	search_url = 'https://esgf-node.llnl.gov/esg-search/search/' \
+				'?{query}&offset=0&limit=0&type=Dataset&replica=false' \
+				'&facets=mip_era%2Cactivity_id%2Csource_id%2Cexperiment_id%2Cvariant_label' \
+				'&format=application%2Fsolr%2Bjson'
+
+	query1 = 'project={proj}&source_id={sid}&activity_id={aid}'
+	query2 = 'project={proj}&source_id={sid}&activity_id={aid}&experiment_id={eid}'
+
+	# Get the simulations per experiment for each source and activity
+	exp_sim = {}
+	for sid in source_id_list:
+		adict = {}
+		for aid in activity_id_list:
+			# Get list of experiments for the activity
+			edict = {}
+			r1 = requests.get(search_url.format(query=query1.format(proj=project, sid=sid, aid=aid)))
+			j1 = json.loads(r1.text)
+			exps = j1['facet_counts']['facet_fields']['experiment_id'][::2]
+			for eid in exps:
+				# Get list of variant_labels (simulations) for the experiment
+				r2 = requests.get(search_url.format(query=query2.format(proj=project, sid=sid, aid=aid, eid=eid)))
+				j2 = json.loads(r2.text)
+				sim_list = j2['facet_counts']['facet_fields']['variant_label'][::2]
+				edict[eid] = sim_list
+			if len(edict.keys()) > 0:
+				adict[aid] = edict
+		if len(adict.keys()) > 0:
+			exp_sim[sid] = adict
+
+	return exp_sim
+
+
 def gen_tables(project, time_shade):
 
 	CMIP_EXP = ["historical", "piControl", "1pctCO2", "amip", "abrupt-4xCO2"]
@@ -118,6 +202,8 @@ def gen_tables(project, time_shade):
 	Experiment_TXT = "Number of 'datasets' [variables x (# of simulations)] from each model for each of the core experiments (DECK + historical)."
 
 	Activity_TXT = "Number of 'datasets' [variables x (# of simulations)]  from each model in support of each CMIP6 activity."
+
+	EXP_SIM_TXT = "Number of experiments and simulations [(# of experiments) / (# of simulations)] from each model in support of each CMIP6 activity."
 
 	timestamp = datetime.datetime.now().strftime("%A %d %B %Y %H:%M:%S")
 	headstr = "ESGF CMIP6 data holdings as of {}"
@@ -143,6 +229,9 @@ def gen_tables(project, time_shade):
 		activity_holdings[sid][aid].append(dt)
 		experiment_holdings[sid][eid].append(dt)
 
+	# Load data for # of experiments / # of simulations
+	exp_sim = get_exp_sim_data(project, source_id_list, activity_id_list)
+
 	print BR
 
 	# time shading legend
@@ -167,6 +256,13 @@ def gen_tables(project, time_shade):
 	print BR
 
 	build_holdings_table(experiment_holdings, source_id_list, '# of expts', CMIP_EXP, time_shade)
+
+	# # of experiments / # of simulations table
+	print BR
+	print EXP_SIM_TXT
+	print BR
+	
+	build_exp_sim_table(exp_sim, source_id_list, activity_id_list)
 
 
 def main():
