@@ -222,12 +222,12 @@ def gen_tables(project, time_shade):
 		experiment_holdings[s] = collections.defaultdict(list)
 
 	for d in data_holdings:
-		sid = d['source_id'][0]
-		aid = d['activity_id'][0]
-		eid = d['experiment_id'][0]
 		dt = datetime.datetime.strptime(d['_timestamp'][:19], '%Y-%m-%dT%H:%M:%S')
-		activity_holdings[sid][aid].append(dt)
-		experiment_holdings[sid][eid].append(dt)
+		for sid in d['source_id']:
+			for aid in d['activity_id']:
+				activity_holdings[sid][aid].append(dt)
+			for eid in d['experiment_id']:
+				experiment_holdings[sid][eid].append(dt)
 
 	# Load data for # of experiments / # of simulations
 	exp_sim = get_exp_sim_data(project, source_id_list, activity_id_list)
