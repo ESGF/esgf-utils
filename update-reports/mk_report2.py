@@ -48,6 +48,7 @@ def build_holdings_table(holdings, source_id_list, col_total_name, col_names, ti
 		else:
 			return "A9F5A9"
 
+	print "<div style=\"overflow-x:auto;\">"
 	print "<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\">"
 	print "<tr><th>source_id</th>"
 
@@ -79,6 +80,7 @@ def build_holdings_table(holdings, source_id_list, col_total_name, col_names, ti
 		print "</tr>"
 
 	print "</table>"
+	print "</div>"
 
 
 def build_exp_sim_table(exp_sim, source_id_list, col_names):
@@ -106,6 +108,7 @@ def build_exp_sim_table(exp_sim, source_id_list, col_names):
 	row_cell_b="<tr><td><b>{}</b></td>"
 	cell = '<td bgcolor="#{}">{}</td>'
 
+	print "<div style=\"overflow-x:auto;\">"
 	print "<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\">"
 	print "<tr><th>source_id</th>"
 
@@ -129,6 +132,7 @@ def build_exp_sim_table(exp_sim, source_id_list, col_names):
 		print "</tr>"
 
 	print "</table>"
+	print "</div>"
 
 
 def get_holdings_data(project):
