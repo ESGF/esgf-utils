@@ -83,7 +83,7 @@ def build_holdings_table(holdings, source_id_list, col_total_name, col_names, ti
 	print "</div>"
 
 
-def build_exp_sim_table(exp_sim, source_id_list, col_names):
+def build_exp_sim_table(exp_sim, source_id_list, activity_id_list):
 
 	exp_sim_counts = collections.defaultdict(dict)
 
@@ -91,14 +91,14 @@ def build_exp_sim_table(exp_sim, source_id_list, col_names):
 	for source_id in source_id_list:
 		exp_sim_counts[source_id] = collections.defaultdict(dict)
 
-		for col in col_names:
-			if col in exp_sim[source_id].keys():
+		for activity_id in activity_id_list:
+			if activity_id in exp_sim[source_id].keys():
 				num_exp = 0
 				num_sim = 0
-				for exp, sims in exp_sim[source_id][col].items():
+				for exp, vals in exp_sim[source_id][activity_id].items():
 					num_exp += 1
-					num_sim += len(sims)
-				exp_sim_counts[source_id][col] = {'num_exp': num_exp, 'num_sim': num_sim}
+					num_sim += len(vals['simulations'])
+				exp_sim_counts[source_id][activity_id] = {'num_exp': num_exp, 'num_sim': num_sim}
 
 	WHITE = "FFFFFF"
 	GRAY = "CCCCCC"
@@ -112,19 +112,68 @@ def build_exp_sim_table(exp_sim, source_id_list, col_names):
 	print "<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\">"
 	print "<tr><th>source_id</th>"
 
-	for col in col_names:
-		print header_cell.format(col)
+	for activity_id in activity_id_list:
+		print header_cell.format(activity_id)
 
 	print "</tr>"
 
 	for source_id in source_id_list:
 		print row_cell_b.format(source_id)
 
-		for col in col_names:
-			if col in exp_sim_counts[source_id].keys():
-				num_exp = exp_sim_counts[source_id][col]['num_exp']
-				num_sim = exp_sim_counts[source_id][col]['num_sim']
+		for activity_id in activity_id_list:
+			if activity_id in exp_sim_counts[source_id].keys():
+				num_exp = exp_sim_counts[source_id][activity_id]['num_exp']
+				num_sim = exp_sim_counts[source_id][activity_id]['num_sim']
 				data = '{}/{}'.format(num_exp,num_sim)
+				print cell.format(WHITE,data)
+			else:
+				print cell.format(GRAY,MISSING)
+
+		print "</tr>"
+
+	print "</table>"
+	print "</div>"
+
+
+def build_var_table(exp_sim, source_id_list, activity_id_list):
+
+	var_counts = collections.defaultdict(dict)
+
+	# Find total number of variables
+	for source_id in source_id_list:
+		var_counts[source_id] = collections.defaultdict(dict)
+
+		for activity_id in activity_id_list:
+			if activity_id in exp_sim[source_id].keys():
+				var_ids = set([])
+				for exp, vals in exp_sim[source_id][activity_id].items():
+					var_ids = var_ids.union(set(vals['variables']))
+				var_counts[source_id][activity_id] = len(var_ids)
+
+	WHITE = "FFFFFF"
+	GRAY = "CCCCCC"
+	MISSING = ""
+
+	header_cell = "<th>{}</th>"
+	row_cell_b="<tr><td><b>{}</b></td>"
+	cell = '<td bgcolor="#{}">{}</td>'
+
+	print "<div style=\"overflow-x:auto;\">"
+	print "<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\">"
+	print "<tr><th>source_id</th>"
+
+	for activity_id in activity_id_list:
+		print header_cell.format(activity_id)
+
+	print "</tr>"
+
+	for source_id in source_id_list:
+		print row_cell_b.format(source_id)
+
+		for activity_id in activity_id_list:
+			if activity_id in var_counts[source_id].keys():
+				num_vars = var_counts[source_id][activity_id]
+				data = '{}'.format(num_vars)
 				print cell.format(WHITE,data)
 			else:
 				print cell.format(GRAY,MISSING)
@@ -168,30 +217,36 @@ def get_exp_sim_data(project, source_id_list, activity_id_list):
 
 	search_url = 'https://esgf-node.llnl.gov/esg-search/search/' \
 				'?{query}&offset=0&limit=0&type=Dataset&replica=false' \
-				'&facets=mip_era%2Cactivity_id%2Csource_id%2Cexperiment_id%2Cvariant_label' \
+				'&facets=variable_id%2Cactivity_id%2Cexperiment_id%2Cvariant_label' \
 				'&format=application%2Fsolr%2Bjson'
 
-	query1 = 'project={proj}&source_id={sid}&activity_id={aid}'
-	query2 = 'project={proj}&source_id={sid}&activity_id={aid}&experiment_id={eid}'
+	query1 = 'project={proj}&source_id={sid}'
+	query2 = 'project={proj}&source_id={sid}&activity_id={aid}'
+	query3 = 'project={proj}&source_id={sid}&activity_id={aid}&experiment_id={eid}'
 
 	# Get the simulations per experiment for each source and activity
 	exp_sim = {}
 	for sid in source_id_list:
 		adict = {}
-		for aid in activity_id_list:
-			# Get list of experiments for the activity
-			edict = {}
-			r1 = requests.get(search_url.format(query=query1.format(proj=project, sid=sid, aid=aid)))
-			j1 = json.loads(r1.text)
-			exps = j1['facet_counts']['facet_fields']['experiment_id'][::2]
-			for eid in exps:
-				# Get list of variant_labels (simulations) for the experiment
-				r2 = requests.get(search_url.format(query=query2.format(proj=project, sid=sid, aid=aid, eid=eid)))
+		r1 = requests.get(search_url.format(query=query1.format(proj=project, sid=sid)))
+		j1 = json.loads(r1.text)
+		activities = j1['facet_counts']['facet_fields']['activity_id'][::2]
+		for aid in activities:
+			if aid in activity_id_list:
+				# Get list of experiments for the activity
+				edict = {}
+				r2 = requests.get(search_url.format(query=query2.format(proj=project, sid=sid, aid=aid)))
 				j2 = json.loads(r2.text)
-				sim_list = j2['facet_counts']['facet_fields']['variant_label'][::2]
-				edict[eid] = sim_list
-			if len(edict.keys()) > 0:
-				adict[aid] = edict
+				exps = j2['facet_counts']['facet_fields']['experiment_id'][::2]
+				for eid in exps:
+					# Get list of variant_labels (simulations) for the experiment
+					r3 = requests.get(search_url.format(query=query3.format(proj=project, sid=sid, aid=aid, eid=eid)))
+					j3 = json.loads(r3.text)
+					sim_list = j3['facet_counts']['facet_fields']['variant_label'][::2]
+					var_list = j3['facet_counts']['facet_fields']['variable_id'][::2]
+					edict[eid] = { 'simulations': sim_list, 'variables': var_list }
+				if len(edict.keys()) > 0:
+					adict[aid] = edict
 		if len(adict.keys()) > 0:
 			exp_sim[sid] = adict
 
@@ -208,6 +263,8 @@ def gen_tables(project, time_shade):
 	Activity_TXT = "Number of 'datasets' [variables x (# of simulations)]  from each model in support of each CMIP6 activity."
 
 	EXP_SIM_TXT = "Number of experiments and simulations [(# of experiments) / (# of simulations)] from each model in support of each CMIP6 activity."
+
+	Variables_TXT = "Number of variables from each model in support of each CMIP6 activity."
 
 	timestamp = datetime.datetime.now().strftime("%A %d %B %Y %H:%M:%S")
 	headstr = "ESGF CMIP6 data holdings as of {}"
@@ -267,6 +324,13 @@ def gen_tables(project, time_shade):
 	print BR
 	
 	build_exp_sim_table(exp_sim, source_id_list, activity_id_list)
+
+	# # of variables
+	print BR
+	print Variables_TXT
+	print BR
+	
+	build_var_table(exp_sim, source_id_list, activity_id_list)
 
 
 def main():
