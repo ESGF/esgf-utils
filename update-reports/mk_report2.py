@@ -5,6 +5,110 @@ import argparse
 import collections
 
 
+def get_solr_query_url():
+    search_url = 'https://esgf-node.llnl.gov/esg-search/search/' \
+                 '?limit=0&format=application%2Fsolr%2Bjson'
+
+    req = requests.get(search_url)
+    js = json.loads(req.text)
+    shards = js['responseHeader']['params']['shards']
+
+    solr_url = 'https://esgf-node.llnl.gov/solr/datasets/select' \
+               '?q=*:*&wt=json&facet=true&fq=type:Dataset' \
+               '&fq=replica:false&shards={shards}&{{query}}'
+    
+    return solr_url.format(shards=shards)
+
+
+def get_latest_data_holdings(project, row_facet, col_facet):
+    solr_url = get_solr_query_url()
+    
+    query = 'rows=0&fq=project:{project}' \
+            '&facet.field={row_facet}&facet.field={col_facet}' \
+            '&stats=true&stats.field={{!tag=piv max=true}}_timestamp' \
+            '&facet.pivot={{!stats=piv}}{row_facet},{col_facet}'
+    query_url = solr_url.format(query=query.format(project=project, 
+                                                   row_facet=row_facet, 
+                                                   col_facet=col_facet))
+    req = requests.get(query_url)
+    js = json.loads(req.text)
+    
+    rows = js['facet_counts']['facet_fields'][row_facet][::2]
+    columns = js['facet_counts']['facet_fields'][col_facet][::2]
+    
+    pivot = js['facet_counts']['facet_pivot'].keys()[0]
+    result = {}
+    for row in js['facet_counts']['facet_pivot'][pivot]:
+        row_val = {}
+        for col in row['pivot']:
+            ts_str = col['stats']['stats_fields']['_timestamp']['max']
+            timestamp = datetime.datetime.strptime(ts_str[:19], '%Y-%m-%dT%H:%M:%S')
+            row_val[col['value']] = dict(num=col['count'], timestamp=timestamp)
+        result[row['value']] = row_val
+            
+    return (rows, columns, result)
+
+
+def get_exp_sim_stats(project, row_facet, col_facet):
+    solr_url = get_solr_query_url()
+    
+    query = 'rows=0&fq=project:{project}' \
+            '&facet.field={row_facet}&facet.field={col_facet}' \
+            '&stats=true&stats.field={{!tag=piv countDistinct=true}}variant_label' \
+            '&facet.pivot={{!stats=piv}}{row_facet},{col_facet},experiment_id'
+    query_url = solr_url.format(query=query.format(project=project, 
+                                                   row_facet=row_facet, 
+                                                   col_facet=col_facet))
+    req = requests.get(query_url)
+    js = json.loads(req.text)
+    
+    rows = js['facet_counts']['facet_fields'][row_facet][::2]
+    columns = js['facet_counts']['facet_fields'][col_facet][::2]
+    
+    pivot = js['facet_counts']['facet_pivot'].keys()[0]
+    result = {}
+    for row in js['facet_counts']['facet_pivot'][pivot]:
+        row_val = {}
+        for col in row['pivot']:
+            num_exp = 0
+            num_sim = 0
+            for exp in col['pivot']:
+                num_exp += 1
+                num_sim += exp['stats']['stats_fields']['variant_label']['countDistinct']
+            row_val[col['value']] = dict(num_exp=num_exp, num_sim=num_sim)
+        result[row['value']] = row_val
+            
+    return (rows, columns, result)
+
+
+def get_var_stats(project, row_facet, col_facet):                                           
+    solr_url = get_solr_query_url()
+    
+    query = 'rows=0&fq=project:{project}' \
+            '&facet.field={row_facet}&facet.field={col_facet}' \
+            '&stats=true&stats.field={{!tag=piv countDistinct=true}}variable_id' \
+            '&facet.pivot={{!stats=piv}}{row_facet},{col_facet}'
+    query_url = solr_url.format(query=query.format(project=project, 
+                                                   row_facet=row_facet, 
+                                                   col_facet=col_facet))
+    req = requests.get(query_url)
+    js = json.loads(req.text)
+    
+    rows = js['facet_counts']['facet_fields'][row_facet][::2]
+    columns = js['facet_counts']['facet_fields'][col_facet][::2]
+    
+    pivot = js['facet_counts']['facet_pivot'].keys()[0]
+    result = {}
+    for row in js['facet_counts']['facet_pivot'][pivot]:
+        row_val = {}
+        for col in row['pivot']:
+            num_var = col['stats']['stats_fields']['variable_id']['countDistinct']
+            row_val[col['value']] = dict(num_var=num_var)
+        result[row['value']] = row_val
+            
+    return (rows, columns, result)
+
+
 def build_holdings_table(holdings, source_id_list, col_total_name, col_names, time_shade=False):
 
 	table_counts = collections.defaultdict(dict)
@@ -15,12 +119,8 @@ def build_holdings_table(holdings, source_id_list, col_total_name, col_names, ti
 	# counts and totals
 	for source_id in source_id_list:
 		table_counts[source_id] = collections.defaultdict(dict)
-
 		for col in col_names:
-			if col in holdings[source_id].keys():	
-				num_found = len(holdings[source_id][col])
-				latest = max(holdings[source_id][col])
-				table_counts[source_id][col] = {'num': num_found, 'timestamp': latest}
+			if col in holdings[source_id].keys():
 				source_totals[source_id] += 1
 				column_totals[col] += 1
 		total_models += source_totals[source_id]
@@ -70,9 +170,9 @@ def build_holdings_table(holdings, source_id_list, col_total_name, col_names, ti
 		print cell_bold.format(source_totals[source_id])
 
 		for col in col_names:
-			if col in table_counts[source_id].keys():	
-				num_found = table_counts[source_id][col]['num']
-				latest = table_counts[source_id][col]['timestamp']
+			if col in holdings[source_id].keys():	
+				num_found = holdings[source_id][col]['num']
+				latest = holdings[source_id][col]['timestamp']
 				print cell.format(_time_green(latest), num_found)
 			else:
 				print cell.format(GRAY,MISSING)
@@ -83,22 +183,7 @@ def build_holdings_table(holdings, source_id_list, col_total_name, col_names, ti
 	print "</div>"
 
 
-def build_exp_sim_table(exp_sim, source_id_list, activity_id_list):
-
-	exp_sim_counts = collections.defaultdict(dict)
-
-	# Find total number of experiments and simulations
-	for source_id in source_id_list:
-		exp_sim_counts[source_id] = collections.defaultdict(dict)
-
-		for activity_id in activity_id_list:
-			if activity_id in exp_sim[source_id].keys():
-				num_exp = 0
-				num_sim = 0
-				for exp, vals in exp_sim[source_id][activity_id].items():
-					num_exp += 1
-					num_sim += len(vals['simulations'])
-				exp_sim_counts[source_id][activity_id] = {'num_exp': num_exp, 'num_sim': num_sim}
+def build_exp_sim_table(exp_sim_counts, source_id_list, activity_id_list):
 
 	WHITE = "FFFFFF"
 	GRAY = "CCCCCC"
@@ -135,20 +220,7 @@ def build_exp_sim_table(exp_sim, source_id_list, activity_id_list):
 	print "</div>"
 
 
-def build_var_table(exp_sim, source_id_list, activity_id_list):
-
-	var_counts = collections.defaultdict(dict)
-
-	# Find total number of variables
-	for source_id in source_id_list:
-		var_counts[source_id] = collections.defaultdict(dict)
-
-		for activity_id in activity_id_list:
-			if activity_id in exp_sim[source_id].keys():
-				var_ids = set([])
-				for exp, vals in exp_sim[source_id][activity_id].items():
-					var_ids = var_ids.union(set(vals['variables']))
-				var_counts[source_id][activity_id] = len(var_ids)
+def build_var_table(var_counts, source_id_list, activity_id_list):
 
 	WHITE = "FFFFFF"
 	GRAY = "CCCCCC"
@@ -172,7 +244,7 @@ def build_var_table(exp_sim, source_id_list, activity_id_list):
 
 		for activity_id in activity_id_list:
 			if activity_id in var_counts[source_id].keys():
-				num_vars = var_counts[source_id][activity_id]
+				num_vars = var_counts[source_id][activity_id]['num_var']
 				data = '{}'.format(num_vars)
 				print cell.format(WHITE,data)
 			else:
@@ -182,75 +254,6 @@ def build_var_table(exp_sim, source_id_list, activity_id_list):
 
 	print "</table>"
 	print "</div>"
-
-
-def get_holdings_data(project):
-
-	search_url = 'https://esgf-node.llnl.gov/esg-search/search' \
-				'?project={project}&offset={offset}&limit={limit}' \
-				'&fields=_timestamp%2Cexperiment_id%2Csource_id%2Cactivity_id' \
-				'&facets=source_id%2Cactivity_id%2Cexperiment_id' \
-				'&format=application%2fsolr%2bjson&replica=false'
-
-	# Get source_id and activity_id lists
-	req = requests.get(search_url.format(project=project, offset=0, limit=0))
-	js = json.loads(req.text)
-
-	activity_id_list = js["facet_counts"]["facet_fields"]["activity_id"][::2]
-	source_id_list = js["facet_counts"]["facet_fields"]["source_id"][::2]
-
-	# Get the list of data holdings
-	holdings = []
-	num_found = js["response"]["numFound"]
-	limit = 10000  # This is currently the maximum number of datasets that can be retrieved from esgf-node.llnl.gov/esg-search
-	offset = 0
-	while offset < num_found:
-		r = requests.get(search_url.format(project=project, offset=offset, limit=limit))
-		j = json.loads(r.text)
-		holdings += j['response']['docs']
-		offset += limit
-
-	return (source_id_list, activity_id_list, holdings)
-
-
-def get_exp_sim_data(project, source_id_list, activity_id_list):
-
-	search_url = 'https://esgf-node.llnl.gov/esg-search/search/' \
-				'?{query}&offset=0&limit=0&type=Dataset&replica=false' \
-				'&facets=variable_id%2Cactivity_id%2Cexperiment_id%2Cvariant_label' \
-				'&format=application%2Fsolr%2Bjson'
-
-	query1 = 'project={proj}&source_id={sid}'
-	query2 = 'project={proj}&source_id={sid}&activity_id={aid}'
-	query3 = 'project={proj}&source_id={sid}&activity_id={aid}&experiment_id={eid}'
-
-	# Get the simulations per experiment for each source and activity
-	exp_sim = {}
-	for sid in source_id_list:
-		adict = {}
-		r1 = requests.get(search_url.format(query=query1.format(proj=project, sid=sid)))
-		j1 = json.loads(r1.text)
-		activities = j1['facet_counts']['facet_fields']['activity_id'][::2]
-		for aid in activities:
-			if aid in activity_id_list:
-				# Get list of experiments for the activity
-				edict = {}
-				r2 = requests.get(search_url.format(query=query2.format(proj=project, sid=sid, aid=aid)))
-				j2 = json.loads(r2.text)
-				exps = j2['facet_counts']['facet_fields']['experiment_id'][::2]
-				for eid in exps:
-					# Get list of variant_labels (simulations) for the experiment
-					r3 = requests.get(search_url.format(query=query3.format(proj=project, sid=sid, aid=aid, eid=eid)))
-					j3 = json.loads(r3.text)
-					sim_list = j3['facet_counts']['facet_fields']['variant_label'][::2]
-					var_list = j3['facet_counts']['facet_fields']['variable_id'][::2]
-					edict[eid] = { 'simulations': sim_list, 'variables': var_list }
-				if len(edict.keys()) > 0:
-					adict[aid] = edict
-		if len(adict.keys()) > 0:
-			exp_sim[sid] = adict
-
-	return exp_sim
 
 
 def gen_tables(project, time_shade):
@@ -271,28 +274,6 @@ def gen_tables(project, time_shade):
 
 	print headstr.format(timestamp)
 
-	# Load all the source ids currently published and get lists 
-	source_id_list, activity_id_list, data_holdings = get_holdings_data(project)
-
-	# Organize timestamps of published datasets by source, activity, and experiment ID
-	activity_holdings = collections.defaultdict(dict)
-	experiment_holdings = collections.defaultdict(dict)
-
-	for s in source_id_list:
-		activity_holdings[s] = collections.defaultdict(list)
-		experiment_holdings[s] = collections.defaultdict(list)
-
-	for d in data_holdings:
-		dt = datetime.datetime.strptime(d['_timestamp'][:19], '%Y-%m-%dT%H:%M:%S')
-		for sid in d['source_id']:
-			for aid in d['activity_id']:
-				activity_holdings[sid][aid].append(dt)
-			for eid in d['experiment_id']:
-				experiment_holdings[sid][eid].append(dt)
-
-	# Load data for # of experiments / # of simulations
-	exp_sim = get_exp_sim_data(project, source_id_list, activity_id_list)
-
 	print BR
 
 	# time shading legend
@@ -309,6 +290,7 @@ def gen_tables(project, time_shade):
 	print Activity_TXT
 	print BR
 
+	source_id_list, activity_id_list, activity_holdings = get_latest_data_holdings(project, 'source_id', 'activity_id')
 	build_holdings_table(activity_holdings, source_id_list, '# of activities', activity_id_list, time_shade)
 
 	# experiment table
@@ -316,6 +298,7 @@ def gen_tables(project, time_shade):
 	print Experiment_TXT
 	print BR
 
+	source_id_list, experiment_id_list, experiment_holdings = get_latest_data_holdings(project, 'source_id', 'experiment_id')
 	build_holdings_table(experiment_holdings, source_id_list, '# of expts', CMIP_EXP, time_shade)
 
 	# # of experiments / # of simulations table
@@ -323,14 +306,16 @@ def gen_tables(project, time_shade):
 	print EXP_SIM_TXT
 	print BR
 	
-	build_exp_sim_table(exp_sim, source_id_list, activity_id_list)
+	source_id_list, _activity_id_list, exp_sim_counts = get_exp_sim_stats(project, 'source_id', 'activity_id')
+	build_exp_sim_table(exp_sim_counts, source_id_list, activity_id_list)
 
 	# # of variables
 	print BR
 	print Variables_TXT
 	print BR
-	
-	build_var_table(exp_sim, source_id_list, activity_id_list)
+
+	source_id_list, _activity_id_list, var_counts = get_var_stats(project, 'source_id', 'activity_id')
+	build_var_table(var_counts, source_id_list, activity_id_list)
 
 
 def main():
