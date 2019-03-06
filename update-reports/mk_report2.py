@@ -306,7 +306,7 @@ def gen_tables(project, time_shade):
 
 	Variables_TXT = "Number of variables from each model in support of each CMIP6 activity."
 
-	Models_per_freq_TXT = "Number of models from each sampling frequency in support of each CMIP6 activity."
+	Models_per_freq_TXT = "Number of models providing output at each sampling frequency in support of each CMIP6 activity."
 
 	timestamp = datetime.datetime.now().strftime("%A %d %B %Y %H:%M:%S")
 	headstr = "ESGF CMIP6 data holdings as of {}"
