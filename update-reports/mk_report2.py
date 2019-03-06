@@ -81,16 +81,17 @@ def get_exp_sim_stats(project, row_facet, col_facet):
     return (rows, columns, result)
 
 
-def get_var_stats(project, row_facet, col_facet):                                           
+def get_facet_value_count(project, row_facet, col_facet, count_facet):                                           
     solr_url = get_solr_query_url()
     
     query = 'rows=0&fq=project:{project}' \
             '&facet.field={row_facet}&facet.field={col_facet}' \
-            '&stats=true&stats.field={{!tag=piv countDistinct=true}}variable_id' \
+            '&stats=true&stats.field={{!tag=piv countDistinct=true}}{count_facet}' \
             '&facet.pivot={{!stats=piv}}{row_facet},{col_facet}'
     query_url = solr_url.format(query=query.format(project=project, 
                                                    row_facet=row_facet, 
-                                                   col_facet=col_facet))
+                                                   col_facet=col_facet,
+												   count_facet=count_facet))
     req = requests.get(query_url)
     js = json.loads(req.text)
     
@@ -102,8 +103,8 @@ def get_var_stats(project, row_facet, col_facet):
     for row in js['facet_counts']['facet_pivot'][pivot]:
         row_val = {}
         for col in row['pivot']:
-            num_var = col['stats']['stats_fields']['variable_id']['countDistinct']
-            row_val[col['value']] = dict(num_var=num_var)
+            num = col['stats']['stats_fields'][count_facet]['countDistinct']
+            row_val[col['value']] = num
         result[row['value']] = row_val
             
     return (rows, columns, result)
@@ -244,8 +245,44 @@ def build_var_table(var_counts, source_id_list, activity_id_list):
 
 		for activity_id in activity_id_list:
 			if activity_id in var_counts[source_id].keys():
-				num_vars = var_counts[source_id][activity_id]['num_var']
+				num_vars = var_counts[source_id][activity_id]
 				data = '{}'.format(num_vars)
+				print cell.format(WHITE,data)
+			else:
+				print cell.format(GRAY,MISSING)
+
+		print "</tr>"
+
+	print "</table>"
+	print "</div>"
+
+
+def build_model_table(model_counts, frequency_list, activity_id_list):
+
+	WHITE = "FFFFFF"
+	GRAY = "CCCCCC"
+	MISSING = ""
+
+	header_cell = "<th>{}</th>"
+	row_cell_b="<tr><td><b>{}</b></td>"
+	cell = '<td bgcolor="#{}">{}</td>'
+
+	print "<div style=\"overflow-x:auto;\">"
+	print "<table border=\"1\" cellspacing=\"2\" cellpadding=\"4\">"
+	print "<tr><th>frequency</th>"
+
+	for activity_id in activity_id_list:
+		print header_cell.format(activity_id)
+
+	print "</tr>"
+
+	for frequency in frequency_list:
+		print row_cell_b.format(frequency)
+
+		for activity_id in activity_id_list:
+			if activity_id in model_counts[frequency].keys():
+				num_models = model_counts[frequency][activity_id]
+				data = '{}'.format(num_models)
 				print cell.format(WHITE,data)
 			else:
 				print cell.format(GRAY,MISSING)
@@ -268,6 +305,8 @@ def gen_tables(project, time_shade):
 	EXP_SIM_TXT = "Number of experiments and simulations [(# of experiments) / (# of simulations)] from each model in support of each CMIP6 activity."
 
 	Variables_TXT = "Number of variables from each model in support of each CMIP6 activity."
+
+	Models_per_freq_TXT = "Number of models from each sampling frequency in support of each CMIP6 activity."
 
 	timestamp = datetime.datetime.now().strftime("%A %d %B %Y %H:%M:%S")
 	headstr = "ESGF CMIP6 data holdings as of {}"
@@ -301,7 +340,7 @@ def gen_tables(project, time_shade):
 	source_id_list, experiment_id_list, experiment_holdings = get_latest_data_holdings(project, 'source_id', 'experiment_id')
 	build_holdings_table(experiment_holdings, source_id_list, '# of expts', CMIP_EXP, time_shade)
 
-	# # of experiments / # of simulations table
+	# # experiments / # of simulations table
 	print BR
 	print EXP_SIM_TXT
 	print BR
@@ -309,13 +348,21 @@ def gen_tables(project, time_shade):
 	source_id_list, _activity_id_list, exp_sim_counts = get_exp_sim_stats(project, 'source_id', 'activity_id')
 	build_exp_sim_table(exp_sim_counts, source_id_list, activity_id_list)
 
-	# # of variables
+	# # variables
 	print BR
 	print Variables_TXT
 	print BR
 
-	source_id_list, _activity_id_list, var_counts = get_var_stats(project, 'source_id', 'activity_id')
+	source_id_list, _activity_id_list, var_counts = get_facet_value_count(project, 'source_id', 'activity_id', 'variable_id')
 	build_var_table(var_counts, source_id_list, activity_id_list)
+
+	# # models 
+	print BR
+	print Models_per_freq_TXT
+	print BR
+
+	frequency_list, _activity_id_list, model_counts = get_facet_value_count(project, 'frequency', 'activity_id', 'source_id')
+	build_model_table(model_counts, frequency_list, activity_id_list)
 
 
 def main():
