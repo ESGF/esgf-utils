@@ -15,7 +15,7 @@ def get_solr_query_url():
 
     solr_url = 'https://esgf-node.llnl.gov/solr/datasets/select' \
                '?q=*:*&wt=json&facet=true&fq=type:Dataset' \
-               '&fq=replica:false&shards={shards}&{{query}}'
+               '&fq=replica:false&fq=latest:true&shards={shards}&{{query}}'
     
     return solr_url.format(shards=shards)
 
