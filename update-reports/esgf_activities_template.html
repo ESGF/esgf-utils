@@ -1,0 +1,126 @@
+ESGF {{project}} data holdings for activity {{activity}} as of {{timestamp}}
+<br><br>
+The cells are shaded by how recently their latest datasets were published.
+<br><br>
+<table border="1" cellspacing="2" cellpadding="4">
+    <tr>
+        <td bgcolor="#BBF7BB">More than 28 days</td>
+        <td bgcolor="#32E732">More than 7 days</td>
+        <td bgcolor="#15B715">Less than 7 days</td>
+    </tr>
+</table>
+<br>
+Number of 'datasets' [variables x (# of simulations)] from each model in support of each {{project}} {{activity}} experiment.
+<br><br>
+<div style="overflow-x:auto;">
+<table border="1" cellspacing="2" cellpadding="4">
+    <tr>
+        <th>model</th>
+        <th># of experiments</th>
+        {% for experiment in experiments -%}
+        <th>{{experiment}}</th>
+        {% endfor -%}
+    </tr>
+    <tr>
+        <td><b># of models</b></td>
+        <td><b>{{experiment_holdings.total}}</b></td>
+        {% for experiment in experiments -%}
+        <td><b>{{experiment_holdings.column_totals[experiment]}}</b></td>
+        {% endfor -%}
+    </tr>
+    {% for model in models -%}
+    <tr>
+        <td><b>{{model}}</b></td>
+        <td><b>{{experiment_holdings.row_totals[model]}}</b></td>
+        {% for experiment in experiments -%}
+        {% if experiment in experiment_holdings.datasets[model] -%}
+        {% if experiment_holdings.datasets[model][experiment].days > 28 -%}
+        <td bgcolor="#BBF7BB">{{experiment_holdings.datasets[model][experiment].num}}</td>
+        {% elif experiment_holdings.datasets[model][experiment].days > 7 -%}
+        <td bgcolor="#32E732">{{experiment_holdings.datasets[model][experiment].num}}</td>
+        {% else -%}
+        <td bgcolor="#15B715">{{experiment_holdings.datasets[model][experiment].num}}</td>
+        {% endif -%}
+        {% else -%}
+        <td bgcolor="#CCCCCC"></td>
+        {% endif -%}
+        {% endfor -%}
+    </tr>
+    {% endfor -%}
+</table>
+</div>
+<br><br>
+Number of simulations [# of simulations] from each model in support of each {{project}} {{activity}} experiment.
+<br><br>
+<div style="overflow-x:auto;">
+<table border="1" cellspacing="2" cellpadding="4">
+    <tr>
+        <th>model</th>
+        {% for experiment in experiments -%}
+        <th>{{experiment}}</th>
+        {% endfor -%}
+    </tr>
+    {% for model in models -%}
+    <tr>
+        <td><b>{{model}}</b></td>
+        {% for experiment in experiments -%}
+        {% if experiment in simulation_counts[model] -%}
+        <td bgcolor="#FFFFFF">{{simulation_counts[model][experiment]}}</td>
+        {% else -%}
+        <td bgcolor="#CCCCCC"></td>
+        {% endif -%}
+        {% endfor -%}
+    </tr>
+    {% endfor -%}
+</table>
+</div>
+<br><br>
+Number of variables from each model in support of each {{project}} {{activity}} experiment.
+<br><br>
+<div style="overflow-x:auto;">
+<table border="1" cellspacing="2" cellpadding="4">
+    <tr>
+        <th>model</th>
+        {% for experiment in experiments -%}
+        <th>{{experiment}}</th>
+        {% endfor -%}
+    </tr>
+    {% for model in models -%}
+    <tr>
+        <td><b>{{model}}</b></td>
+        {% for experiment in experiments -%}
+        {% if experiment in variable_counts[model] -%}
+        <td bgcolor="#FFFFFF">{{variable_counts[model][experiment]}}</td>
+        {% else -%}
+        <td bgcolor="#CCCCCC"></td>
+        {% endif -%}
+        {% endfor -%}
+    </tr>
+    {% endfor -%}
+</table>
+</div>
+<br><br>
+Number of models providing output at each sampling frequency in support of each {{project}} {{activity}} experiment.
+<br><br>
+<div style="overflow-x:auto;">
+<table border="1" cellspacing="2" cellpadding="4">
+    <tr>
+        <th>frequency</th>
+        {% for experiment in experiments -%}
+        <th>{{experiment}}</th>
+        {% endfor -%}
+    </tr>
+    {% for frequency in frequencies -%}
+    <tr>
+        <td><b>{{frequency}}</b></td>
+        {% for experiment in experiments -%}
+        {% if experiment in models_per_frequency[frequency] -%}
+        <td bgcolor="#FFFFFF">{{models_per_frequency[frequency][experiment]}}</td>
+        {% else -%}
+        <td bgcolor="#CCCCCC"></td>
+        {% endif -%}
+        {% endfor -%}
+    </tr>
+    {% endfor -%}
+</table>
+</div>
