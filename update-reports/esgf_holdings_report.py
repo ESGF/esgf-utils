@@ -110,33 +110,48 @@ def get_exp_sim_stats(project, row_facet, col_facet):
     return (rows, columns, result)
 
 
-def get_facet_value_count(project, row_facet, col_facet, count_facet):                                           
-    solr_url = get_solr_query_url()
-    
-    query = 'rows=0&fq=project:{project}' \
-            '&facet.field={row_facet}&facet.field={col_facet}' \
-            '&stats=true&stats.field={{!tag=piv countDistinct=true}}{count_facet}' \
-            '&facet.pivot={{!stats=piv}}{row_facet},{col_facet}'
-    query_url = solr_url.format(query=query.format(project=project, 
-                                                   row_facet=row_facet, 
-                                                   col_facet=col_facet,
-												   count_facet=count_facet))
-    req = requests.get(query_url)
-    js = json.loads(req.text)
-    
-    rows = js['facet_counts']['facet_fields'][row_facet][::2]
-    columns = js['facet_counts']['facet_fields'][col_facet][::2]
-    
-    pivot = js['facet_counts']['facet_pivot'].keys()[0]
-    result = {}
-    for row in js['facet_counts']['facet_pivot'][pivot]:
-        row_val = {}
-        for col in row['pivot']:
-            num = col['stats']['stats_fields'][count_facet]['countDistinct']
-            row_val[col['value']] = num
-        result[row['value']] = row_val
-            
-    return (rows, columns, result)
+def get_facet_value_count(project, row_facet, col_facet, count_facet, selected_columns=None, activity_id=None):
+	solr_url = get_solr_query_url()
+
+	if activity_id is None:
+		query = 'rows=0&fq=project:{project}' \
+		'&facet.field={row_facet}&facet.field={col_facet}' \
+		'&stats=true&stats.field={{!tag=piv countDistinct=true}}{count_facet}' \
+		'&facet.pivot={{!stats=piv}}{row_facet},{col_facet}'
+		query_url = solr_url.format(query=query.format(project=project, 
+													row_facet=row_facet, 
+													col_facet=col_facet,
+													count_facet=count_facet))
+	else:
+		query = 'rows=0&fq=project:{project}&fq=activity_id:{activity_id}' \
+		'&facet.field={row_facet}&facet.field={col_facet}' \
+		'&stats=true&stats.field={{!tag=piv countDistinct=true}}{count_facet}' \
+		'&facet.pivot={{!stats=piv}}{row_facet},{col_facet}'
+		query_url = solr_url.format(query=query.format(project=project,
+													activity_id=activity_id,
+													row_facet=row_facet, 
+													col_facet=col_facet,
+													count_facet=count_facet))
+	req = requests.get(query_url)
+	js = json.loads(req.text)
+
+	rows = js['facet_counts']['facet_fields'][row_facet][::2]
+	if selected_columns is None:
+		columns = js['facet_counts']['facet_fields'][col_facet][::2]
+	else:
+		columns = selected_columns
+
+	pivot = js['facet_counts']['facet_pivot'].keys()[0]
+	result = {}
+	for row in js['facet_counts']['facet_pivot'][pivot]:
+		row_val = {}
+		for col in row['pivot']:
+			if col['value'] in columns:
+				num = col['stats']['stats_fields'][count_facet]['countDistinct']
+				row_val[col['value']] = num
+		result[row['value']] = row_val
+			
+	return (rows, columns, result)
 
 
 def gen_tables(project, output_dir):
@@ -145,34 +160,68 @@ def gen_tables(project, output_dir):
 
 	timestamp = datetime.datetime.now().strftime("%A %d %B %Y %H:%M:%S")
 
-	loader = jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__),'esgf_holdings_template.html'))
-	env = jinja2.Environment(loader=loader)
-	template = env.get_template('')
+	holdings_loader = jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__),'esgf_holdings_template.html'))
+	holdings_env = jinja2.Environment(loader=holdings_loader)
+	holdings_template = holdings_env.get_template('')
 
 	# Create a page with ESGF holdings for all activities of this project
 	source_id_list, activity_id_list, activity_holdings = get_latest_data_holdings(project, 'source_id', 'activity_id')
 	source_id_list, experiment_id_list, experiment_holdings = get_latest_data_holdings(project, 'source_id', 'experiment_id', selected_columns=CMIP_EXP)
 	_source_id_list, _activity_id_list, exp_sim_counts = get_exp_sim_stats(project, 'source_id', 'activity_id')
-	_source_id_list, _activity_id_list, var_counts = get_facet_value_count(project, 'source_id', 'activity_id', 'variable_id')
+	_source_id_list, _activity_id_list, variable_counts = get_facet_value_count(project, 'source_id', 'activity_id', 'variable_id')
 	frequency_list, _activity_id_list, model_counts = get_facet_value_count(project, 'frequency', 'activity_id', 'source_id')
-	html = template.render(project=project,
-							timestamp=timestamp,
-							models=source_id_list, 
-							activities=activity_id_list, 
-							experiments=experiment_id_list, 
-							frequencies=frequency_list,
-							experiment_holdings=experiment_holdings,
-							activity_holdings=activity_holdings,
-							exp_sim_counts=exp_sim_counts,
-							variable_counts=var_counts,
-							models_per_frequency=model_counts)
+	html = holdings_template.render(project=project,
+									timestamp=timestamp,
+									models=source_id_list, 
+									activities=activity_id_list, 
+									experiments=experiment_id_list, 
+									frequencies=frequency_list,
+									experiment_holdings=experiment_holdings,
+									activity_holdings=activity_holdings,
+									exp_sim_counts=exp_sim_counts,
+									variable_counts=variable_counts,
+									models_per_frequency=model_counts)
 
-	filepath = os.path.join(output_dir, project+'_holdings.html')
+	filepath = os.path.join(output_dir, project+'_esgf_holdings.html')
 	with open(filepath,'w') as f:
 		print(html, file=f)
 
 	# Create pages with ESGF holdings for each activity of this project
 	# Display only data for the given list of experiments
+
+	activities_loader = jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__),'esgf_activities_template.html'))
+	activities_env = jinja2.Environment(loader=activities_loader)
+	activities_template = activities_env.get_template('')
+
+	for activity_id in activity_id_list:
+		source_id_list, experiment_id_list, experiment_holdings = get_latest_data_holdings(project, 'source_id', 'experiment_id', 
+																	activity_id=activity_id)
+		_source_id_list, _experiment_id_list, simulation_counts = get_facet_value_count(project, 'source_id', 'experiment_id', 'variant_label',
+																	activity_id=activity_id)
+		_source_id_list, _experiment_id_list, variable_counts = get_facet_value_count(project, 'source_id', 'experiment_id', 'variable_id', 
+																	activity_id=activity_id)
+		frequency_list, _experiment_id_list, model_counts = get_facet_value_count(project, 'frequency', 'experiment_id', 'source_id', 
+																	activity_id=activity_id)
+		html = activities_template.render(project=project,
+										activity=activity_id,
+										timestamp=timestamp,
+										models=source_id_list, 
+										activities=activity_id_list, 
+										experiments=experiment_id_list, 
+										frequencies=frequency_list,
+										experiment_holdings=experiment_holdings,
+										activity_holdings=activity_holdings,
+										simulation_counts=simulation_counts,
+										variable_counts=variable_counts,
+										models_per_frequency=model_counts)
+
+		activities_dir = os.path.join(output_dir, activity_id)
+		if not os.path.isdir(activities_dir):
+			os.mkdir(activities_dir)
+
+		filepath = os.path.join(activities_dir, 'index.html')
+		with open(filepath,'w') as f:
+			print(html, file=f)
 
 
 def main():

@@ -1,4 +1,4 @@
-ESGF {{project}} data holdings as of {{timestamp}}
+ESGF {{project}} data holdings for activity {{activity}} as of {{timestamp}}
 <br><br>
 The cells are shaded by how recently their latest datasets were published.
 <br><br>
@@ -11,49 +11,7 @@ The cells are shaded by how recently their latest datasets were published.
 </table>
 <br>
 
-Number of 'datasets' [variables x (# of simulations)] from each model in support of each {{project}} activity.
-<br><br>
-
-<div style="overflow-x:auto;">
-<table border="1" cellspacing="2" cellpadding="4">
-    <tr>
-        <th>model</th>
-        <th># of activities</th>
-        {% for activity in activities -%}
-        <th><a href={{activity}}/index.html>{{activity}}</a></th>
-        {% endfor -%}
-    </tr>
-    <tr>
-        <td><b># of models</b></td>
-        <td><b>{{activity_holdings.total}}</b></td>
-        {% for activity in activities -%}
-        <td><b>{{activity_holdings.column_totals[activity]}}</b></td>
-        {% endfor -%}
-    </tr>
-    {% for model in models -%}
-    <tr>
-        <td><b>{{model}}</b></td>
-        <td><b>{{activity_holdings.row_totals[model]}}</b></td>
-        {% for activity in activities -%}
-        {% if activity in activity_holdings.datasets[model] -%}
-        {% if activity_holdings.datasets[model][activity].days > 28 -%}
-        <td bgcolor="#BBF7BB">{{activity_holdings.datasets[model][activity].num}}</td>
-        {% elif activity_holdings.datasets[model][activity].days > 7 -%}
-        <td bgcolor="#32E732">{{activity_holdings.datasets[model][activity].num}}</td>
-        {% else -%}
-        <td bgcolor="#15B715">{{activity_holdings.datasets[model][activity].num}}</td>
-        {% endif -%}
-        {% else -%}
-        <td bgcolor="#CCCCCC"></td>
-        {% endif -%}
-        {% endfor -%}
-    </tr>
-    {% endfor -%}
-</table>
-</div>
-<br><br>
-
-Number of 'datasets' [variables x (# of simulations)] from each model for each of the core experiments (DECK + historical).
+Number of 'datasets' [variables x (# of simulations)] from each model in support of each {{project}} {{activity}} experiment.
 <br><br>
 
 <div style="overflow-x:auto;">
@@ -95,23 +53,23 @@ Number of 'datasets' [variables x (# of simulations)] from each model for each o
 </div>
 <br><br>
 
-Number of experiments and simulations [(# of experiments) / (# of simulations)] from each model in support of each {{project}} activity.
+Number of simulations [# of simulations] from each model in support of each {{project}} {{activity}} experiment.
 <br><br>
 
 <div style="overflow-x:auto;">
 <table border="1" cellspacing="2" cellpadding="4">
     <tr>
         <th>model</th>
-        {% for activity in activities -%}
-        <th><a href={{activity}}/index.html>{{activity}}</a></th>
+        {% for experiment in experiments -%}
+        <th>{{experiment}}</th>
         {% endfor -%}
     </tr>
     {% for model in models -%}
     <tr>
         <td><b>{{model}}</b></td>
-        {% for activity in activities -%}
-        {% if activity in exp_sim_counts[model] -%}
-        <td bgcolor="#FFFFFF">{{exp_sim_counts[model][activity].num_exp}}/{{exp_sim_counts[model][activity].num_sim}}</td>
+        {% for experiment in experiments -%}
+        {% if experiment in simulation_counts[model] -%}
+        <td bgcolor="#FFFFFF">{{simulation_counts[model][experiment]}}</td>
         {% else -%}
         <td bgcolor="#CCCCCC"></td>
         {% endif -%}
@@ -122,23 +80,23 @@ Number of experiments and simulations [(# of experiments) / (# of simulations)] 
 </div>
 <br><br>
 
-Number of variables from each model in support of each {{project}} activity.
+Number of variables from each model in support of each {{project}} {{activity}} experiment.
 <br><br>
 
 <div style="overflow-x:auto;">
 <table border="1" cellspacing="2" cellpadding="4">
     <tr>
         <th>model</th>
-        {% for activity in activities -%}
-        <th><a href={{activity}}/index.html>{{activity}}</a></th>
+        {% for experiment in experiments -%}
+        <th>{{experiment}}</th>
         {% endfor -%}
     </tr>
     {% for model in models -%}
     <tr>
         <td><b>{{model}}</b></td>
-        {% for activity in activities -%}
-        {% if activity in variable_counts[model] -%}
-        <td bgcolor="#FFFFFF">{{variable_counts[model][activity]}}</td>
+        {% for experiment in experiments -%}
+        {% if experiment in variable_counts[model] -%}
+        <td bgcolor="#FFFFFF">{{variable_counts[model][experiment]}}</td>
         {% else -%}
         <td bgcolor="#CCCCCC"></td>
         {% endif -%}
@@ -149,23 +107,23 @@ Number of variables from each model in support of each {{project}} activity.
 </div>
 <br><br>
 
-Number of models providing output at each sampling frequency in support of each {{project}} activity.
+Number of models providing output at each sampling frequency in support of each {{project}} {{activity}} experiment.
 <br><br>
 
 <div style="overflow-x:auto;">
 <table border="1" cellspacing="2" cellpadding="4">
     <tr>
         <th>frequency</th>
-        {% for activity in activities -%}
-        <th><a href={{activity}}/index.html>{{activity}}</a></th>
+        {% for experiment in experiments -%}
+        <th>{{experiment}}</th>
         {% endfor -%}
     </tr>
     {% for frequency in frequencies -%}
     <tr>
         <td><b>{{frequency}}</b></td>
-        {% for activity in activities -%}
-        {% if activity in models_per_frequency[frequency] -%}
-        <td bgcolor="#FFFFFF">{{models_per_frequency[frequency][activity]}}</td>
+        {% for experiment in experiments -%}
+        {% if experiment in models_per_frequency[frequency] -%}
+        <td bgcolor="#FFFFFF">{{models_per_frequency[frequency][experiment]}}</td>
         {% else -%}
         <td bgcolor="#CCCCCC"></td>
         {% endif -%}
