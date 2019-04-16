@@ -20,7 +20,7 @@ Number of 'datasets' [variables x (# of simulations)] from each model in support
         <th>model</th>
         <th># of activities</th>
         {% for activity in activities -%}
-        <th><a href={{activity}}/index.html>{{activity}}</a></th>
+        <th><a href="{{activity}}/index.html">{{activity}}</a></th>
         {% endfor -%}
     </tr>
     <tr>
@@ -103,7 +103,7 @@ Number of experiments and simulations [(# of experiments) / (# of simulations)] 
     <tr>
         <th>model</th>
         {% for activity in activities -%}
-        <th><a href={{activity}}/index.html>{{activity}}</a></th>
+        <th><a href="{{activity}}/index.html">{{activity}}</a></th>
         {% endfor -%}
     </tr>
     {% for model in models -%}
@@ -130,7 +130,7 @@ Number of variables from each model in support of each {{project}} activity.
     <tr>
         <th>model</th>
         {% for activity in activities -%}
-        <th><a href={{activity}}/index.html>{{activity}}</a></th>
+        <th><a href="{{activity}}/index.html">{{activity}}</a></th>
         {% endfor -%}
     </tr>
     {% for model in models -%}
@@ -157,7 +157,7 @@ Number of models providing output at each sampling frequency in support of each 
     <tr>
         <th>frequency</th>
         {% for activity in activities -%}
-        <th><a href={{activity}}/index.html>{{activity}}</a></th>
+        <th><a href="{{activity}}/index.html">{{activity}}</a></th>
         {% endfor -%}
     </tr>
     {% for frequency in frequencies -%}
