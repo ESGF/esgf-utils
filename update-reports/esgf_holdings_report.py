@@ -156,8 +156,6 @@ def get_facet_value_count(project, row_facet, col_facet, count_facet, selected_c
 
 def gen_tables(project, output_dir):
 
-	CMIP_EXP = ["historical", "piControl", "1pctCO2", "amip", "abrupt-4xCO2"]
-
 	timestamp = datetime.datetime.now().strftime("%A %d %B %Y %H:%M:%S")
 
 	holdings_loader = jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__),'esgf_holdings_template.html'))
