@@ -10,6 +10,8 @@ The cells are shaded by how recently their latest datasets were published.
     </tr>
 </table>
 <br>
+Click on an activity name at the top of the tables to go to a page for that activity's data holdings. 
+<br><br>
 Number of 'datasets' [variables x (# of simulations)] from each model in support of each {{project}} activity.
 <br><br>
 <div style="overflow-x:auto;">
@@ -40,46 +42,6 @@ Number of 'datasets' [variables x (# of simulations)] from each model in support
         <td bgcolor="#32E732">{{activity_holdings.datasets[model][activity].num}}</td>
         {% else -%}
         <td bgcolor="#15B715">{{activity_holdings.datasets[model][activity].num}}</td>
-        {% endif -%}
-        {% else -%}
-        <td bgcolor="#CCCCCC"></td>
-        {% endif -%}
-        {% endfor -%}
-    </tr>
-    {% endfor -%}
-</table>
-</div>
-<br><br>
-Number of 'datasets' [variables x (# of simulations)] from each model for each of the core experiments (DECK + historical).
-<br><br>
-<div style="overflow-x:auto;">
-<table border="1" cellspacing="2" cellpadding="4">
-    <tr>
-        <th>model</th>
-        <th># of experiments</th>
-        {% for experiment in experiments -%}
-        <th>{{experiment}}</th>
-        {% endfor -%}
-    </tr>
-    <tr>
-        <td><b># of models</b></td>
-        <td><b>{{experiment_holdings.total}}</b></td>
-        {% for experiment in experiments -%}
-        <td><b>{{experiment_holdings.column_totals[experiment]}}</b></td>
-        {% endfor -%}
-    </tr>
-    {% for model in models -%}
-    <tr>
-        <td><b>{{model}}</b></td>
-        <td><b>{{experiment_holdings.row_totals[model]}}</b></td>
-        {% for experiment in experiments -%}
-        {% if experiment in experiment_holdings.datasets[model] -%}
-        {% if experiment_holdings.datasets[model][experiment].days > 28 -%}
-        <td bgcolor="#BBF7BB">{{experiment_holdings.datasets[model][experiment].num}}</td>
-        {% elif experiment_holdings.datasets[model][experiment].days > 7 -%}
-        <td bgcolor="#32E732">{{experiment_holdings.datasets[model][experiment].num}}</td>
-        {% else -%}
-        <td bgcolor="#15B715">{{experiment_holdings.datasets[model][experiment].num}}</td>
         {% endif -%}
         {% else -%}
         <td bgcolor="#CCCCCC"></td>

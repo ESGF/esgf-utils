@@ -156,8 +156,6 @@ def get_facet_value_count(project, row_facet, col_facet, count_facet, selected_c
 
 def gen_tables(project, output_dir):
 
-	CMIP_EXP = ["historical", "piControl", "1pctCO2", "amip", "abrupt-4xCO2"]
-
 	timestamp = datetime.datetime.now().strftime("%A %d %B %Y %H:%M:%S")
 
 	holdings_loader = jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__),'esgf_holdings_template.html'))
@@ -166,7 +164,6 @@ def gen_tables(project, output_dir):
 
 	# Create a page with ESGF holdings for all activities of this project
 	source_id_list, activity_id_list, activity_holdings = get_latest_data_holdings(project, 'source_id', 'activity_id')
-	source_id_list, experiment_id_list, experiment_holdings = get_latest_data_holdings(project, 'source_id', 'experiment_id', selected_columns=CMIP_EXP)
 	_source_id_list, _activity_id_list, exp_sim_counts = get_exp_sim_stats(project, 'source_id', 'activity_id')
 	_source_id_list, _activity_id_list, variable_counts = get_facet_value_count(project, 'source_id', 'activity_id', 'variable_id')
 	frequency_list, _activity_id_list, model_counts = get_facet_value_count(project, 'frequency', 'activity_id', 'source_id')
@@ -174,9 +171,7 @@ def gen_tables(project, output_dir):
 									timestamp=timestamp,
 									models=source_id_list, 
 									activities=activity_id_list, 
-									experiments=experiment_id_list, 
 									frequencies=frequency_list,
-									experiment_holdings=experiment_holdings,
 									activity_holdings=activity_holdings,
 									exp_sim_counts=exp_sim_counts,
 									variable_counts=variable_counts,
@@ -206,11 +201,9 @@ def gen_tables(project, output_dir):
 										activity=activity_id,
 										timestamp=timestamp,
 										models=source_id_list, 
-										activities=activity_id_list, 
 										experiments=experiment_id_list, 
 										frequencies=frequency_list,
 										experiment_holdings=experiment_holdings,
-										activity_holdings=activity_holdings,
 										simulation_counts=simulation_counts,
 										variable_counts=variable_counts,
 										models_per_frequency=model_counts)
