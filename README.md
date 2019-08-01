@@ -11,6 +11,6 @@ Contents
 
 ```ansible-playbook -i <host-file> --tags index install_ns.yml```
 
-	We suggest you become familiar with the Ansible installation, (see Ansible Docs) for additional arguments to run the playbooks.  In addition, please contact LLNL to add the IP of your index node to the access list on the monitoring service API.
+We suggest you become familiar with the Ansible installation, (see Ansible Docs) for additional arguments to run the playbooks.  In addition, please contact LLNL to add the IP of your index node to the access list on the monitoring service API.
 
 
