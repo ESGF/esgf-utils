@@ -24,16 +24,16 @@ Number of 'datasets' [variables x (# of simulations)] from each model in support
         {% endfor -%}
     </tr>
     <tr>
-        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"><b># of models</b></td>
-        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"><b>{{activity_holdings.total}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;"># of models</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{activity_holdings.total}}</td>
         {% for activity in activities -%}
-        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"><b>{{activity_holdings.column_totals[activity]}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{activity_holdings.column_totals[activity]}}</td>
         {% endfor -%}
     </tr>
     {% for model in models -%}
     <tr>
-        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"><b>{{model}}</b></td>
-        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"><b>{{activity_holdings.row_totals[model]}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{model}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{activity_holdings.row_totals[model]}}</td>
         {% for activity in activities -%}
         {% if activity in activity_holdings.datasets[model] -%}
         {% if activity_holdings.datasets[model][activity].days > 28 -%}
@@ -64,7 +64,7 @@ Number of experiments and simulations [(# of experiments) / (# of simulations)] 
     </tr>
     {% for model in models -%}
     <tr>
-        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"><b>{{model}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{model}}</td>
         {% for activity in activities -%}
         {% if activity in exp_sim_counts[model] -%}
         <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">{{exp_sim_counts[model][activity].num_exp}}/{{exp_sim_counts[model][activity].num_sim}}</td>
@@ -89,7 +89,7 @@ Number of variables from each model in support of each {{project}} activity.
     </tr>
     {% for model in models -%}
     <tr>
-        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"><b>{{model}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{model}}</td>
         {% for activity in activities -%}
         {% if activity in variable_counts[model] -%}
         <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">{{variable_counts[model][activity]}}</td>
@@ -114,7 +114,7 @@ Number of models providing output at each sampling frequency in support of each 
     </tr>
     {% for frequency in frequencies -%}
     <tr>
-        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"><b>{{frequency}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{frequency}}</td>
         {% for activity in activities -%}
         {% if activity in models_per_frequency[frequency] -%}
         <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">{{models_per_frequency[frequency][activity]}}</td>
