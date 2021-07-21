@@ -2,47 +2,47 @@ ESGF {{project}} data holdings for activity {{activity}} as of {{timestamp}}
 <br><br>
 The cells are shaded by how recently their latest datasets were published.
 <br><br>
-<table border="1" cellspacing="2" cellpadding="4">
+<table>
     <tr>
-        <td bgcolor="#BBF7BB">More than 28 days</td>
-        <td bgcolor="#32E732">More than 7 days</td>
-        <td bgcolor="#15B715">Less than 7 days</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#BBF7BB">More than 28 days</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#32E732">More than 7 days</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#15B715">Less than 7 days</td>
     </tr>
 </table>
 <br>
 Number of 'datasets' [variables x (# of simulations)] from each model in support of each {{project}} {{activity}} experiment.
 <br><br>
 <div style="overflow-x:auto;">
-<table border="1" cellspacing="2" cellpadding="4">
+<table>
     <tr>
-        <th>model</th>
-        <th># of experiments</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">model</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"># of experiments</th>
         {% for experiment in experiments -%}
-        <th>{{experiment}}</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">{{experiment}}</th>
         {% endfor -%}
     </tr>
     <tr>
-        <td><b># of models</b></td>
-        <td><b>{{experiment_holdings.total}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;"># of models</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{experiment_holdings.total}}</td>
         {% for experiment in experiments -%}
-        <td><b>{{experiment_holdings.column_totals[experiment]}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{experiment_holdings.column_totals[experiment]}}</td>
         {% endfor -%}
     </tr>
     {% for model in models -%}
     <tr>
-        <td><b>{{model}}</b></td>
-        <td><b>{{experiment_holdings.row_totals[model]}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{model}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{experiment_holdings.row_totals[model]}}</td>
         {% for experiment in experiments -%}
         {% if experiment in experiment_holdings.datasets[model] -%}
         {% if experiment_holdings.datasets[model][experiment].days > 28 -%}
-        <td bgcolor="#BBF7BB">{{experiment_holdings.datasets[model][experiment].num}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#BBF7BB">{{experiment_holdings.datasets[model][experiment].num}}</td>
         {% elif experiment_holdings.datasets[model][experiment].days > 7 -%}
-        <td bgcolor="#32E732">{{experiment_holdings.datasets[model][experiment].num}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#32E732">{{experiment_holdings.datasets[model][experiment].num}}</td>
         {% else -%}
-        <td bgcolor="#15B715">{{experiment_holdings.datasets[model][experiment].num}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#15B715">{{experiment_holdings.datasets[model][experiment].num}}</td>
         {% endif -%}
         {% else -%}
-        <td bgcolor="#CCCCCC"></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#CCCCCC"></td>
         {% endif -%}
         {% endfor -%}
     </tr>
@@ -53,21 +53,21 @@ Number of 'datasets' [variables x (# of simulations)] from each model in support
 Number of simulations [# of simulations] from each model in support of each {{project}} {{activity}} experiment.
 <br><br>
 <div style="overflow-x:auto;">
-<table border="1" cellspacing="2" cellpadding="4">
+<table>
     <tr>
-        <th>model</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">model</th>
         {% for experiment in experiments -%}
-        <th>{{experiment}}</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">{{experiment}}</th>
         {% endfor -%}
     </tr>
     {% for model in models -%}
     <tr>
-        <td><b>{{model}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{model}}</td>
         {% for experiment in experiments -%}
         {% if experiment in simulation_counts[model] -%}
-        <td bgcolor="#FFFFFF">{{simulation_counts[model][experiment]}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF">{{simulation_counts[model][experiment]}}</td>
         {% else -%}
-        <td bgcolor="#CCCCCC"></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#CCCCCC"></td>
         {% endif -%}
         {% endfor -%}
     </tr>
@@ -78,21 +78,21 @@ Number of simulations [# of simulations] from each model in support of each {{pr
 Number of variables from each model in support of each {{project}} {{activity}} experiment.
 <br><br>
 <div style="overflow-x:auto;">
-<table border="1" cellspacing="2" cellpadding="4">
+<table>
     <tr>
-        <th>model</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">model</th>
         {% for experiment in experiments -%}
-        <th>{{experiment}}</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">{{experiment}}</th>
         {% endfor -%}
     </tr>
     {% for model in models -%}
     <tr>
-        <td><b>{{model}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{model}}</td>
         {% for experiment in experiments -%}
         {% if experiment in variable_counts[model] -%}
-        <td bgcolor="#FFFFFF">{{variable_counts[model][experiment]}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF">{{variable_counts[model][experiment]}}</td>
         {% else -%}
-        <td bgcolor="#CCCCCC"></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#CCCCCC"></td>
         {% endif -%}
         {% endfor -%}
     </tr>
@@ -103,21 +103,21 @@ Number of variables from each model in support of each {{project}} {{activity}} 
 Number of models providing output at each sampling frequency in support of each {{project}} {{activity}} experiment.
 <br><br>
 <div style="overflow-x:auto;">
-<table border="1" cellspacing="2" cellpadding="4">
+<table>
     <tr>
-        <th>frequency</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">frequency</th>
         {% for experiment in experiments -%}
-        <th>{{experiment}}</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">{{experiment}}</th>
         {% endfor -%}
     </tr>
     {% for frequency in frequencies -%}
     <tr>
-        <td><b>{{frequency}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{frequency}}</td>
         {% for experiment in experiments -%}
         {% if experiment in models_per_frequency[frequency] -%}
-        <td bgcolor="#FFFFFF">{{models_per_frequency[frequency][experiment]}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF">{{models_per_frequency[frequency][experiment]}}</td>
         {% else -%}
-        <td bgcolor="#CCCCCC"></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#CCCCCC"></td>
         {% endif -%}
         {% endfor -%}
     </tr>

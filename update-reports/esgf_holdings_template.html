@@ -2,11 +2,11 @@ ESGF {{project}} data holdings as of {{timestamp}}
 <br><br>
 The cells are shaded by how recently their latest datasets were published.
 <br><br>
-<table border="1" cellspacing="2" cellpadding="4">
+<table>
     <tr>
-        <td bgcolor="#BBF7BB">More than 28 days</td>
-        <td bgcolor="#32E732">More than 7 days</td>
-        <td bgcolor="#15B715">Less than 7 days</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#BBF7BB;">More than 28 days</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#32E732;">More than 7 days</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#15B715;">Less than 7 days</td>
     </tr>
 </table>
 <br>
@@ -15,36 +15,36 @@ Click on an activity name at the top of the tables to go to a page for that acti
 Number of 'datasets' [variables x (# of simulations)] from each model in support of each {{project}} activity.
 <br><br>
 <div style="overflow-x:auto;">
-<table border="1" cellspacing="2" cellpadding="4">
+<table>
     <tr>
-        <th>model</th>
-        <th># of activities</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">model</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"># of activities</th>
         {% for activity in activities -%}
-        <th><a href="{{activity}}/index.html">{{activity}}</a></th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"><a href="{{activity}}/index.html">{{activity}}</a></th>
         {% endfor -%}
     </tr>
     <tr>
-        <td><b># of models</b></td>
-        <td><b>{{activity_holdings.total}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;"># of models</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{activity_holdings.total}}</td>
         {% for activity in activities -%}
-        <td><b>{{activity_holdings.column_totals[activity]}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{activity_holdings.column_totals[activity]}}</td>
         {% endfor -%}
     </tr>
     {% for model in models -%}
     <tr>
-        <td><b>{{model}}</b></td>
-        <td><b>{{activity_holdings.row_totals[model]}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{model}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{activity_holdings.row_totals[model]}}</td>
         {% for activity in activities -%}
         {% if activity in activity_holdings.datasets[model] -%}
         {% if activity_holdings.datasets[model][activity].days > 28 -%}
-        <td bgcolor="#BBF7BB">{{activity_holdings.datasets[model][activity].num}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#BBF7BB;">{{activity_holdings.datasets[model][activity].num}}</td>
         {% elif activity_holdings.datasets[model][activity].days > 7 -%}
-        <td bgcolor="#32E732">{{activity_holdings.datasets[model][activity].num}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#32E732;">{{activity_holdings.datasets[model][activity].num}}</td>
         {% else -%}
-        <td bgcolor="#15B715">{{activity_holdings.datasets[model][activity].num}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#15B715;">{{activity_holdings.datasets[model][activity].num}}</td>
         {% endif -%}
         {% else -%}
-        <td bgcolor="#CCCCCC"></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#CCCCCC;"></td>
         {% endif -%}
         {% endfor -%}
     </tr>
@@ -55,21 +55,21 @@ Number of 'datasets' [variables x (# of simulations)] from each model in support
 Number of experiments and simulations [(# of experiments) / (# of simulations)] from each model in support of each {{project}} activity.
 <br><br>
 <div style="overflow-x:auto;">
-<table border="1" cellspacing="2" cellpadding="4">
+<table>
     <tr>
-        <th>model</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">model</th>
         {% for activity in activities -%}
-        <th><a href="{{activity}}/index.html">{{activity}}</a></th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"><a href="{{activity}}/index.html">{{activity}}</a></th>
         {% endfor -%}
     </tr>
     {% for model in models -%}
     <tr>
-        <td><b>{{model}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{model}}</td>
         {% for activity in activities -%}
         {% if activity in exp_sim_counts[model] -%}
-        <td bgcolor="#FFFFFF">{{exp_sim_counts[model][activity].num_exp}}/{{exp_sim_counts[model][activity].num_sim}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">{{exp_sim_counts[model][activity].num_exp}}/{{exp_sim_counts[model][activity].num_sim}}</td>
         {% else -%}
-        <td bgcolor="#CCCCCC"></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#CCCCCC;"></td>
         {% endif -%}
         {% endfor -%}
     </tr>
@@ -80,21 +80,21 @@ Number of experiments and simulations [(# of experiments) / (# of simulations)] 
 Number of variables from each model in support of each {{project}} activity.
 <br><br>
 <div style="overflow-x:auto;">
-<table border="1" cellspacing="2" cellpadding="4">
+<table>
     <tr>
-        <th>model</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">model</th>
         {% for activity in activities -%}
-        <th><a href="{{activity}}/index.html">{{activity}}</a></th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"><a href="{{activity}}/index.html">{{activity}}</a></th>
         {% endfor -%}
     </tr>
     {% for model in models -%}
     <tr>
-        <td><b>{{model}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{model}}</td>
         {% for activity in activities -%}
         {% if activity in variable_counts[model] -%}
-        <td bgcolor="#FFFFFF">{{variable_counts[model][activity]}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">{{variable_counts[model][activity]}}</td>
         {% else -%}
-        <td bgcolor="#CCCCCC"></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#CCCCCC;"></td>
         {% endif -%}
         {% endfor -%}
     </tr>
@@ -105,21 +105,21 @@ Number of variables from each model in support of each {{project}} activity.
 Number of models providing output at each sampling frequency in support of each {{project}} activity.
 <br><br>
 <div style="overflow-x:auto;">
-<table border="1" cellspacing="2" cellpadding="4">
+<table>
     <tr>
-        <th>frequency</th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">frequency</th>
         {% for activity in activities -%}
-        <th><a href="{{activity}}/index.html">{{activity}}</a></th>
+        <th style="padding:4px; border: solid 1px black; background-color:#FFFFFF;"><a href="{{activity}}/index.html">{{activity}}</a></th>
         {% endfor -%}
     </tr>
     {% for frequency in frequencies -%}
     <tr>
-        <td><b>{{frequency}}</b></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF; font-weight: bold;">{{frequency}}</td>
         {% for activity in activities -%}
         {% if activity in models_per_frequency[frequency] -%}
-        <td bgcolor="#FFFFFF">{{models_per_frequency[frequency][activity]}}</td>
+        <td style="padding:4px; border: solid 1px black; background-color:#FFFFFF;">{{models_per_frequency[frequency][activity]}}</td>
         {% else -%}
-        <td bgcolor="#CCCCCC"></td>
+        <td style="padding:4px; border: solid 1px black; background-color:#CCCCCC;"></td>
         {% endif -%}
         {% endfor -%}
     </tr>
