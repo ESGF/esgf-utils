@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 
 from time import sleep
 
@@ -26,8 +27,8 @@ def do_check():
             print("Need to restart")
             #os.system(ANSIBLE_RESTART)
             return
-    except:
-        print("JSON Parse error or other")
+    except BaseException as ex:
+        print("JSON Parse error or other", ex)
 
 while (True):
     do_check()
