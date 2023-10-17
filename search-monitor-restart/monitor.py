@@ -15,8 +15,8 @@ def do_check():
 
     if resp.status_code != 200:
         print("Need to Restart")
-#        os.system(ANSIBLE_RESTART)
-#        return
+        os.system(ANSIBLE_RESTART)
+        return
 
 
     try:
@@ -25,7 +25,7 @@ def do_check():
 
         if len(facets) < 4:
             print("Need to restart")
-            #os.system(ANSIBLE_RESTART)
+            os.system(ANSIBLE_RESTART)
             return
     except BaseException as ex:
         print("JSON Parse error or other", ex)
